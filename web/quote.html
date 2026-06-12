@@ -573,6 +573,15 @@
 
                 <div class="price-divider"></div>
 
+                <!-- Promo Code -->
+                <div class="promo-code-container" style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="promo-code-input" placeholder="Promo code" style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; text-transform: uppercase;">
+                        <button type="button" onclick="applyPromoCode()" class="btn-primary" style="padding: 10px 16px; font-size: 0.9rem; min-width: auto; border-radius: 6px;">Apply</button>
+                    </div>
+                    <div id="promo-code-message" style="font-size: 0.85rem; margin-top: 8px; display: none;"></div>
+                </div>
+
                 <div class="price-guarantee">
                     <div class="guarantee-item">
                         <span class="g-icon">🔒</span>
