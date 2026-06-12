@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Sheet - Aligned Spaces</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { 
+      font-family: 'Inter', sans-serif; 
+      margin: 0; 
+      padding: 0; 
+      color: #2C2B29; 
+      background-color: #EFEBE5; 
+    }
+    .header {
+      background-color: #2C2B29;
+      color: #FDFBF7;
+      text-align: center;
+      padding: 30px 20px;
+    }
+    .header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      margin: 0 0 5px 0;
+      color: #D5BBAE;
+    }
+    .subtitle {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #A69279;
+      font-weight: 600;
+    }
+    .container {
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+    .info-item {
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #D9D2C5;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+    }
+    .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #8C8173; display: block; margin-bottom: 5px; font-weight: 600;}
+    .value { font-size: 15px; font-weight: 500; color: #2C2B29; }
+    
+    .box { background-color: #fff; padding: 20px; border-radius: 8px; border: 1px solid #D9D2C5; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+    h2 { font-family: 'Playfair Display', serif; color: #4A3C39; font-size: 20px; border-bottom: 1px solid #C4A47C; padding-bottom: 8px; margin-top:0;}
+    
+    .loading { text-align: center; padding: 50px; color: #8C8173; font-family: 'Playfair Display', serif; font-size: 20px; }
+    .error { text-align: center; padding: 50px; color: #d9534f; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Aligned Spaces</h1>
+    <div class="subtitle">Official Job Sheet</div>
+  </div>
+
+  <div class="container" id="content">
+    <div class="loading">Retrieving Job Sheet...</div>
+  </div>
+
+  <!-- Firebase Compat Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const bookingId = urlParams.get('id');
+
+      if (!bookingId) {
+        document.getElementById('content').innerHTML = '<div class="error">No booking ID provided in link.</div>';
+        return;
+      }
+
+      try {
+        const doc = await window.db.collection("bookings").doc(bookingId).get();
+        if (!doc.exists) {
+          document.getElementById('content').innerHTML = '<div class="error">Job Sheet not found or deleted.</div>';
+          return;
+        }
+
+        const booking = doc.data();
+
+        // Checklists definitions
+        const checklists = {
+          "Signature Clean": {
+            "All Rooms": [
+              "Dusting and wiping top-to-bottom (ceiling fans, vents, blinds, baseboards)",
+              "Wiping down all accessible surfaces and furniture",
+              "Vacuuming carpets and mopping hard floors",
+              "Emptying all trash receptacles",
+              "Sanitizing high-touch points (doorknobs, light switches)",
+              "Sliding glass doors cleaned (inside & out)"
+            ],
+            "Kitchen": [
+              "Wiping exterior of all cabinets",
+              "Cleaning exterior and interior of microwave",
+              "Degreasing and scrubbing stovetop",
+              "Sanitizing countertops and backsplashes",
+              "Polishing the sink and fixtures",
+              "Wiping down the exterior of all appliances"
+            ],
+            "Bathrooms": [
+              "Deep scrubbing of showers, tubs, and tile grout",
+              "Thorough sanitizing of toilets (inside and out)",
+              "Polishing mirrors and glass doors",
+              "Cleaning and polishing sink fixtures",
+              "Folding towels hotel-style"
+            ]
+          },
+          "Transition Reset": {
+            "Deep Scrubbing & Detail": [
+              "Hand-washing all baseboards, window sills, and door frames",
+              "Cleaning inside all windows (where accessible safely)",
+              "Vacuuming inside all closets and shelving",
+              "Deep scrubbing of all bathroom tiles, grout, and fixtures",
+              "Cleaning light fixtures and ceiling fans"
+            ],
+            "Inside Cabinets & Appliances": [
+              "Vacuuming and wet-wiping the inside of all kitchen cabinets and drawers",
+              "Vacuuming and wet-wiping the inside of all bathroom vanities",
+              "Deep cleaning the inside of the oven (removing racks and degreasing)",
+              "Deep cleaning the inside of the refrigerator (wiping all shelves and bins)"
+            ]
+          },
+          "5-Star Turnover": {
+            "The Baseline Clean": [
+              "Thorough dusting of all surfaces and furniture",
+              "Vacuuming carpets and mopping hard floors",
+              "Emptying all trash receptacles",
+              "Sanitizing high-touch points (remotes, doorknobs, lockboxes)",
+              "Deep scrubbing of bathrooms (toilets, showers, sinks)",
+              "Cleaning kitchen surfaces, inside microwave, and stovetop",
+              "Sliding glass doors cleaned (inside & out)"
+            ],
+            "Staging & Reset": [
+              "Stripping used linens and towels",
+              "Washing and changing all bed linens",
+              "Making beds with professional hotel-style tucks",
+              "Folding fresh towels aesthetically",
+              "Resetting decorative pillows, throws, and furniture placement"
+            ],
+            "Inventory & Restocking": [
+              "Restocking toilet paper and paper towels",
+              "Refilling hand soaps, shampoo, and body wash dispensers",
+              "Restocking coffee, tea, and basic kitchen supplies",
+              "Emptying the dishwasher and putting away clean dishes"
+            ],
+            "Damage Check & Reporting": [
+              "Visual inspection for stains, damages, or missing items",
+              "Immediate notification to the host of any issues found",
+              "Checking that appliances and lights are turned off",
+              "Securing all windows and doors before departure"
+            ],
+            "Included Extras": [
+              "IN FRIDGE, IN OVEN, IN EMPTY CABINETS and balcony and patio set is included"
+            ]
+          },
+          "Post-Construction": {
+            "Dust Eradication": [
+              "Dry dusting walls and ceilings to remove fine drywall dust",
+              "Vacuuming inside and outside of all vents and duct covers",
+              "Wiping down all ceiling fans and light fixtures",
+              "Detailed dusting of all baseboards, door frames, and window sills",
+              "Thorough vacuuming of all carpets and hard floors (multiple passes)",
+              "Sliding glass doors cleaned (inside & out)"
+            ],
+            "Deep Cabinetry Cleaning": [
+              "Vacuuming and wet-wiping the inside of all new kitchen cabinets and drawers",
+              "Vacuuming and wet-wiping the inside of all new bathroom cabinets and vanities",
+              "Wiping down the exterior of all cabinetry to remove sawdust and fingerprints",
+              "Cleaning all newly installed closet shelving"
+            ],
+            "Surface Restoration & Polishing": [
+              "Removing small paint splatters, adhesive, or caulk residue",
+              "Polishing all new appliances",
+              "Deep scrubbing of newly installed tiles to remove grout haze",
+              "Polishing all mirrors, interior glass doors, and interior windows",
+              "Shining all new chrome, brass, and stainless steel fixtures"
+            ]
+          },
+          "Tailored Focus": {
+            "Custom Checklist": [
+              "Focus entirely on deep cleaning the kitchen and organizing the pantry",
+              "Spend the hours scrubbing grout and polishing all bathrooms",
+              "Help with intensive decluttering or seasonal closet organization",
+              "Tackle specific, high-traffic areas before a party or event",
+              "Handle unpacking and breaking down boxes in a new home"
+            ]
+          }
+        };
+
+        let mappedService = booking.service || "";
+        let serviceLower = mappedService.toLowerCase();
+        
+        if(serviceLower.includes('signature')) mappedService = 'Signature Clean';
+        else if(serviceLower.includes('transition')) mappedService = 'Transition Reset';
+        else if(serviceLower.includes('turnover') || serviceLower.includes('5-star')) mappedService = '5-Star Turnover';
+        else if(serviceLower.includes('postconstruction') || serviceLower.includes('post-construction')) mappedService = 'Post-Construction';
+        else if(serviceLower.includes('tailored')) mappedService = 'Tailored Focus';
+
+        let checklistHtml = '';
+        let tasksData = checklists[mappedService] || {"Tasks": ["Standard cleaning procedures"]};
+        
+        Object.keys(tasksData).forEach(section => {
+            checklistHtml += `<h4 style="font-family:'Inter', sans-serif; font-size:11px; color:#C4A47C; text-transform:uppercase; letter-spacing:1px; margin: 15px 0 8px 0; border-bottom:1px solid #EFEBE5; padding-bottom:4px;">${section}</h4>`;
+            tasksData[section].forEach(task => {
+                checklistHtml += `<div style="margin-bottom:12px; display:flex; align-items:flex-start;"><div style="min-width:16px; max-width:16px; height:16px; border:2px solid #C4A47C; margin-right:10px; border-radius:4px; margin-top:2px;"></div> <span style="font-size:14px; color:#444; line-height:1.4;">${task}</span></div>`;
+            });
+        });
+
+        let addOnsHtml = '';
+        if (booking.addOns && booking.addOns.length > 0) {
+            addOnsHtml = `
+              <div style="margin-top: 25px; padding-top: 15px; border-top: 1px dashed #C4A47C;">
+                <h3 style="font-family:'Playfair Display', serif; color:#8C8173; font-size:16px; margin:0 0 10px 0;">✨ Client Add-Ons</h3>
+            `;
+            booking.addOns.forEach(addon => {
+                let name = addon.id || addon.name || addon;
+                name = name.toString().replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                let qty = addon.qty || addon.count || 1;
+                addOnsHtml += `<div style="margin-bottom:12px; display:flex; align-items:center;"><div style="width:16px; height:16px; border:2px solid #C4A47C; margin-right:12px; border-radius:4px; background:#F8F3ED;"></div> <span style="font-size:15px; color:#C27A65; font-weight:600;">[ADD-ON] ${name} ${qty > 1 ? '(x' + qty + ')' : ''}</span></div>`;
+            });
+            addOnsHtml += `</div>`;
+        }
+
+        const html = `
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">Date & Time</span>
+              <span class="value">${booking.date || 'TBD'} at ${booking.time || 'TBD'}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Client</span>
+              <span class="value">${booking.clientName || 'Unknown'}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Location</span>
+              <span class="value">${booking.addr || 'N/A'}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Service Required</span>
+              <span class="value" style="color: #C27A65; font-weight: 600;">${booking.service || 'N/A'}</span>
+            </div>
+          </div>
+          
+          <div class="box">
+            <h2>Job Checklist</h2>
+            <div style="margin-top: 15px;">
+              ${checklistHtml}
+              ${addOnsHtml}
+            </div>
+          </div>
+          
+          <div class="info-grid">
+            <div class="info-item" style="border-left: 4px solid #D5BBAE;">
+              <span class="label">Client Instructions</span>
+              <p style="font-size: 14px; line-height:1.6; color:#444; margin:0;">${booking.clientNotes || 'None.'}</p>
+            </div>
+            <div class="info-item" style="border-left: 4px solid #C27A65;">
+              <span class="label">Manager Notes (Private)</span>
+              <p style="font-size: 14px; line-height:1.6; color:#444; margin:0;">${booking.managerNotes || 'None.'}</p>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('content').innerHTML = html;
+
+      } catch(err) {
+        console.error(err);
+        document.getElementById('content').innerHTML = '<div class="error">Failed to load job sheet.</div>';
+      }
+    });
+  </script>
+</body>
+</html>

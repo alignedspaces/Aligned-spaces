@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM Dashboard - Aligned Spaces</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+  <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #F8F3ED; /* Soft Peach */
+      margin: 0;
+      color: #2C2B29;
+    }
+    .sidebar {
+      width: 250px;
+      background-color: #2C2B29;
+      color: #FDFBF7;
+      position: fixed;
+      height: 100vh;
+      padding: 30px 20px;
+      box-sizing: border-box;
+    }
+    .sidebar h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      margin-top: 0;
+      border-bottom: 1px solid #5A5957;
+      padding-bottom: 20px;
+      color: #D5BBAE;
+    }
+    .menu-item {
+      padding: 15px 0;
+      cursor: pointer;
+      font-size: 15px;
+      border-bottom: 1px solid #3a3937;
+      transition: color 0.2s;
+    }
+    .menu-item:hover { color: #D5BBAE; }
+    
+    .main-content {
+      margin-left: 250px;
+      padding: 40px;
+    }
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    .header-bar h1 {
+      font-family: 'Playfair Display', serif;
+      margin: 0;
+      font-size: 32px;
+    }
+    .btn-primary {
+      background-color: #2C2B29;
+      color: #FDFBF7;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-primary:hover { background-color: #1a1a18; }
+    
+    /* Table Styles */
+    .table-container {
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+    th, td {
+      padding: 16px 20px;
+      border-bottom: 1px solid #F8F3ED;
+      font-size: 14px;
+    }
+    th {
+      background-color: #FDFBF7;
+      font-weight: 600;
+      color: #5A5957;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+    .status-select, .payment-select {
+      padding: 6px 10px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      cursor: pointer;
+    }
+    .notes-box {
+      width: 100%;
+      min-width: 280px;
+      padding: 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      resize: vertical;
+      min-height: 60px;
+      background: #fafafa;
+    }
+    .btn-save {
+      background: #D5BBAE;
+      color: #fff;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      align-items: center; justify-content: center;
+      z-index: 9999; /* Ensure it stays on top of calendar */
+    }
+    .modal-content {
+      background: #fff; padding: 30px; border-radius: 12px; width: 400px;
+    }
+    .modal h3 { margin-top: 0; font-family: 'Playfair Display', serif; }
+    .input-group { margin-bottom: 15px; }
+    .input-group label { display: block; font-size: 12px; margin-bottom: 5px; font-weight: 600; color: #5A5957;}
+    .input-group input, .input-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    
+    .view-toggle { display: flex; gap: 10px; margin-right: 20px; }
+    .btn-toggle { background: transparent; color: #5A5957; border: 1px solid #ccc; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight:500;}
+    .btn-toggle.active { background: #D5BBAE; color: white; border-color: #D5BBAE; }
+    #calendar-container { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); display: none; }
+    .fc-event { cursor: pointer; border: none; padding: 2px 4px; border-radius: 4px;}
+    .detail-row { margin-bottom: 10px; font-size: 14px;}
+    .detail-row strong { color: #5A5957; display: inline-block; width: 80px;}
+    
+    .nav-active { color: #D5BBAE !important; font-weight: 600; }
+    .clients-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px;}
+    .client-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #F8F3ED; }
+    .client-card h3 { font-family: 'Playfair Display', serif; margin: 0 0 10px 0; font-size: 20px; color: #2C2B29; }
+    .client-card p { margin: 5px 0; font-size: 13px; color: #5A5957; }
+    .client-card .tag { background: #D5BBAE; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <h2>Aligned Spaces</h2>
+    <div class="menu-item nav-active" id="navBookings" style="cursor: pointer;">📅 Bookings</div>
+    <div class="menu-item" id="navClients" style="cursor: pointer;">👥 Clients</div>
+    <div class="menu-item" id="navStaff" style="cursor: pointer;">🧹 Staff</div>
+    <div class="menu-item" id="navLeads" style="cursor: pointer;">🎯 Leads</div>
+    <div class="menu-item" id="navPayroll" style="cursor: pointer;">💰 Payroll</div>
+    <div class="menu-item" id="navRevenue" style="cursor: pointer;">📈 Analytics</div>
+    <div class="menu-item" id="logoutBtn" style="margin-top: 50px; color: #d9534f;">🚪 Log Out</div>
+  </div>
+
+  <div class="main-content">
+    <div id="bookingsView">
+      <div class="header-bar">
+        <h1>Bookings Dashboard</h1>
+      <div style="display:flex; align-items:center;">
+        <div class="view-toggle">
+          <button class="btn-toggle active" id="btnListView">List View</button>
+          <button class="btn-toggle" id="btnCalView">Calendar View</button>
+        </div>
+        <button class="btn-primary" id="openModalBtn">+ Manual Booking</button>
+      </div>
+    </div>
+
+    <div class="table-container" id="listView">
+      <table>
+        <thead>
+          <tr>
+            <th>Date & Time</th>
+            <th>Client Info</th>
+            <th>Service</th>
+            <th>Staff</th>
+            <th>Job Status</th>
+            <th>Payment</th>
+            <th>Private Notes</th>
+          </tr>
+        </thead>
+        <tbody id="bookingsTable">
+          <!-- Data will load here -->
+          <tr><td colspan="6" style="text-align:center; padding: 30px;">Loading bookings...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <div id="calendar-container">
+      <div id="calendar"></div>
+    </div>
+    </div> <!-- Close bookingsView -->
+
+    <div id="clientsView" style="display: none;">
+      <div class="header-bar">
+        <h1>Client Directory</h1>
+      </div>
+      <div class="clients-grid" id="clientsGrid">
+        <!-- Client cards injected here -->
+      </div>
+    </div>
+
+    <div id="staffView" style="display: none;">
+      <div class="header-bar">
+        <h1>Staff Directory</h1>
+        <button class="btn-primary" id="openAddStaffBtn" style="font-size: 14px; padding: 10px 20px;">+ Add Staff</button>
+      </div>
+      <div class="clients-grid" id="staffGrid">
+        <!-- Staff cards injected here -->
+      </div>
+    </div>
+
+    <div id="revenueView" style="display: none;">
+      <div class="header-bar">
+        <h1>Financial Analytics</h1>
+      </div>
+      <div style="display:flex; gap:20px; margin-bottom: 20px;">
+        <div style="flex:1; background:#fff; padding:20px; border-radius:12px; border:1px solid #F8F3ED; box-shadow:0 4px 20px rgba(0,0,0,0.03);">
+          <h3 style="color:#5A5957; font-size:14px; margin:0 0 10px 0;">Gross Revenue (This Month)</h3>
+          <h2 style="margin:0; font-family:'Playfair Display', serif; color:#8C8173; font-size:32px;" id="revThisMonth">$0.00</h2>
+        </div>
+        <div style="flex:1; background:#fff; padding:20px; border-radius:12px; border:1px solid #F8F3ED; box-shadow:0 4px 20px rgba(0,0,0,0.03);">
+          <h3 style="color:#d9534f; font-size:14px; margin:0 0 10px 0;">Total Payroll (This Month)</h3>
+          <h2 style="margin:0; font-family:'Playfair Display', serif; color:#d9534f; font-size:32px;" id="payThisMonth">$0.00</h2>
+        </div>
+        <div style="flex:1; background:#fff; padding:20px; border-radius:12px; border:1px solid #F8F3ED; box-shadow:0 4px 20px rgba(0,0,0,0.03);">
+          <h3 style="color:#5cb85c; font-size:14px; margin:0 0 10px 0;">Net Profit (This Month)</h3>
+          <h2 style="margin:0; font-family:'Playfair Display', serif; color:#5cb85c; font-size:32px;" id="profitThisMonth">$0.00</h2>
+          <span id="marginThisMonth" style="font-size:12px; color:#5A5957; font-weight:600;">0% Margin</span>
+        </div>
+      </div>
+      
+      <div style="display:flex; gap:20px; margin-bottom: 30px;">
+        <div style="flex:1; background:#fff; padding:20px; border-radius:12px; border:1px solid #F8F3ED; box-shadow:0 4px 20px rgba(0,0,0,0.03);">
+          <h3 style="color:#5A5957; font-size:14px; margin:0 0 10px 0;">All-Time Revenue</h3>
+          <h2 style="margin:0; font-family:'Playfair Display', serif; color:#8C8173; font-size:24px;" id="revAllTime">$0.00</h2>
+        </div>
+        <div style="flex:1; background:#fff; padding:20px; border-radius:12px; border:1px solid #F8F3ED; box-shadow:0 4px 20px rgba(0,0,0,0.03);">
+          <h3 style="color:#5A5957; font-size:14px; margin:0 0 10px 0;">Bookings This Month</h3>
+          <h2 style="margin:0; font-family:'Playfair Display', serif; color:#8C8173; font-size:24px;" id="bookingsThisMonth">0</h2>
+        </div>
+      </div>
+      <div style="background:#fff; padding:20px; border-radius:12px; border:1px solid #F8F3ED; box-shadow:0 4px 20px rgba(0,0,0,0.03); max-width: 800px;">
+        <canvas id="revenueChart" width="400" height="200"></canvas>
+      </div>
+    </div>
+
+    <div id="leadsView" style="display: none;">
+      <div class="header-bar">
+        <h1>Leads Management</h1>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Date Received</th>
+              <th>Client Name</th>
+              <th>Contact</th>
+              <th>Service Details</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="leadsTable">
+            <tr><td colspan="5" style="text-align:center;">Loading leads...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="payrollView" style="display: none;">
+      <div class="header-bar">
+        <h1>Payroll Calculator</h1>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <input type="date" id="prStart" class="status-select">
+            <span>to</span>
+            <input type="date" id="prEnd" class="status-select">
+            <button class="btn-primary" id="btnCalcPayroll" style="padding:8px 16px;">Calculate</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Staff Member</th>
+              <th>Jobs Completed</th>
+              <th>Total Hours</th>
+              <th>Hourly Rate</th>
+              <th>Total Pay</th>
+            </tr>
+          </thead>
+          <tbody id="payrollTable">
+            <tr><td colspan="5" style="text-align:center;">Select dates to calculate payroll</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Event Details Modal -->
+  <div class="modal" id="eventModal">
+    <div class="modal-content">
+      <h3>Booking Details</h3>
+      <div id="eventDetailsContent"></div>
+      <button class="btn-primary" style="width: 100%; margin-top: 20px;" onclick="document.getElementById('eventModal').style.display='none'">Close</button>
+    </div>
+  </div>
+
+  <!-- Edit Client Modal -->
+  <div class="modal" id="editClientModal">
+    <div class="modal-content">
+      <h3>Edit Client Profile</h3>
+      <p style="font-size:12px; color:#777;">This will update their info across all past and future bookings.</p>
+      <div class="input-group">
+        <label>Client Name</label>
+        <input type="text" id="ecName">
+      </div>
+      <div class="input-group">
+        <label>Email & Phone</label>
+        <input type="text" id="ecContact">
+      </div>
+      <div class="input-group">
+        <label>Address</label>
+        <input type="text" id="ecAddr">
+      </div>
+      <button class="btn-primary" style="width: 100%;" id="saveClientBtn">Update All Bookings</button>
+      <button style="width: 100%; padding: 10px; margin-top: 10px; border:none; background:none; cursor:pointer;" id="closeClientModalBtn">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Add Staff Modal -->
+  <div class="modal" id="staffModal">
+    <div class="modal-content">
+      <h3 id="staffModalTitle">Staff Profile</h3>
+      <input type="hidden" id="sId">
+      <div class="input-group">
+        <label>Name</label>
+        <input type="text" id="sName">
+      </div>
+      <div class="input-group">
+        <label>Phone</label>
+        <input type="text" id="sPhone">
+      </div>
+      <div class="input-group">
+        <label>Email</label>
+        <input type="email" id="sEmail">
+      </div>
+      <div class="input-group">
+        <label>Emergency Contact</label>
+        <input type="text" id="sEmergency" placeholder="Name & Phone">
+      </div>
+      <div class="input-group" style="display:flex; gap:10px;">
+        <div style="flex:1;">
+          <label>4-Digit PIN (App Login)</label>
+          <input type="text" id="sPin" placeholder="e.g. 1234" maxlength="4">
+        </div>
+        <div style="flex:1;">
+          <label>Hourly Rate ($)</label>
+          <input type="number" id="sRate" placeholder="e.g. 20" step="0.5">
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Weekly Availability</label>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:5px;" id="sAvailability">
+          <label><input type="checkbox" value="Mon"> Mon</label>
+          <label><input type="checkbox" value="Tue"> Tue</label>
+          <label><input type="checkbox" value="Wed"> Wed</label>
+          <label><input type="checkbox" value="Thu"> Thu</label>
+          <label><input type="checkbox" value="Fri"> Fri</label>
+          <label><input type="checkbox" value="Sat"> Sat</label>
+          <label><input type="checkbox" value="Sun"> Sun</label>
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Status</label>
+        <select id="sStatus">
+          <option>Active</option>
+          <option>Inactive</option>
+        </select>
+      </div>
+      <button class="btn-primary" style="width: 100%;" id="saveStaffBtn">Save Staff</button>
+      <button style="width: 100%; padding: 10px; margin-top: 10px; border:none; background:none; cursor:pointer;" onclick="document.getElementById('staffModal').style.display='none'">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Manual Booking Modal -->
+  <div class="modal" id="bookingModal">
+    <div class="modal-content">
+      <h3>Add Manual Booking</h3>
+      <div class="input-group">
+        <label>Client Name</label>
+        <input type="text" id="mName">
+      </div>
+      <div class="input-group">
+        <label>Email & Phone</label>
+        <input type="text" id="mContact">
+      </div>
+      <div class="input-group">
+        <label>Service Type</label>
+        <select id="mService">
+          <option>Signature Clean</option>
+          <option>Transition Reset</option>
+          <option>5-Star Turnover</option>
+          <option>Post-Construction</option>
+          <option>Tailored Focus</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Assign Staff</label>
+        <select id="mStaff">
+          <option>Unassigned</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Date & Time</label>
+        <input type="datetime-local" id="mDate">
+      </div>
+      <div class="input-group" style="display:flex; gap:10px;">
+        <div style="flex:1;">
+          <label>Frequency</label>
+          <select id="mFrequency">
+            <option value="One-Time">One-Time</option>
+            <option value="Weekly">Weekly</option>
+            <option value="Bi-Weekly">Bi-Weekly</option>
+            <option value="Monthly">Monthly</option>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <label>Occurrences</label>
+          <input type="number" id="mOccurrences" value="1" min="1" max="52">
+        </div>
+      </div>
+      <button class="btn-primary" style="width: 100%;" id="saveManualBtn">Save Booking</button>
+      <button style="width: 100%; padding: 10px; margin-top: 10px; border:none; background:none; cursor:pointer;" id="closeModalBtn">Cancel</button>
+    </div>
+  </div>
+
+  <!-- PHOTO GALLERY MODAL -->
+  <div class="modal" id="photoModal" style="display:none;">
+    <div class="modal-content" style="max-width:600px; text-align:center; max-height:80vh; overflow-y:auto;">
+      <h2 style="font-family:'Playfair Display', serif; margin-bottom: 20px;">Job Photos</h2>
+      <p style="font-size:13px; color:#5A5957; margin-bottom:15px;">Right-click any photo and select "Save Image As" to download it.</p>
+      <div id="photoGallery"></div>
+      <button onclick="document.getElementById('photoModal').style.display='none'" class="btn-primary" style="margin-top:20px;">Close Gallery</button>
+    </div>
+  </div>
+
+  <!-- Firebase Compat Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <script>
+    // --- PAYROLL CALCULATOR LOGIC ---  
+    let calendar;
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      const calendarEl = document.getElementById('calendar');
+      calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        displayEventTime: false,
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek'
+        },
+        eventClick: function(info) {
+           const p = info.event.extendedProps;
+           let html = `
+             <div class="detail-row"><strong>Name:</strong> ${p.clientName || p.name || 'Unknown'}</div>
+             <div class="detail-row"><strong>Phone:</strong> ${p.phone || p.clientContact || 'N/A'}</div>
+             <div class="detail-row"><strong>Service:</strong> ${p.serviceType || 'N/A'}</div>
+             <div class="detail-row"><strong>Address:</strong> ${p.addr || 'N/A'}</div>
+             <div class="detail-row"><strong>Freq:</strong> ${p.frequency || 'One-Time'}</div>
+             <div class="detail-row"><strong>Cost:</strong> $${p.total || '--'}</div>
+             <div class="detail-row"><strong>Status:</strong> ${p.status}</div>
+             <div class="detail-row"><strong>Notes:</strong> ${p.notes || 'None'}</div>
+           `;
+           document.getElementById('eventDetailsContent').innerHTML = html;
+           document.getElementById('eventModal').style.display = 'flex';
+        }
+      });
+      calendar.render();
+      
+      // Toggle logic
+      const views = ['bookings', 'clients', 'staff', 'revenue', 'leads', 'payroll'];
+      views.forEach(view => {
+        const navId = `nav${view.charAt(0).toUpperCase() + view.slice(1)}`;
+        const viewId = `${view}View`;
+        document.getElementById(navId).addEventListener('click', () => {
+          views.forEach(v => {
+             document.getElementById(`${v}View`).style.display = 'none';
+             document.getElementById(`nav${v.charAt(0).toUpperCase() + v.slice(1)}`).classList.remove('nav-active');
+          });
+          document.getElementById(viewId).style.display = 'block';
+          document.getElementById(navId).classList.add('nav-active');
+          
+          if(view === 'leads') loadLeads();
+        });
+      });
+
+      document.getElementById('btnListView').addEventListener('click', () => {
+        document.getElementById('listView').style.display = 'block';
+        document.getElementById('calendar-container').style.display = 'none';
+        document.getElementById('btnListView').classList.add('active');
+        document.getElementById('btnCalView').classList.remove('active');
+      });
+      document.getElementById('btnCalView').addEventListener('click', () => {
+        document.getElementById('listView').style.display = 'none';
+        document.getElementById('calendar-container').style.display = 'block';
+        document.getElementById('btnCalView').classList.add('active');
+        document.getElementById('btnListView').classList.remove('active');
+        calendar.render(); 
+      });
+    });
+
+    // Protect Route
+    window.auth.onAuthStateChanged((user) => {
+      if (!user) {
+        window.location.href = 'admin.html';
+      } else {
+        loadStaff();
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      window.auth.signOut();
+    });
+
+    // Staff Logic
+    let globalStaff = [];
+
+    async function loadStaff() {
+      try {
+        const snap = await window.db.collection('staff').get();
+        globalStaff = [];
+        const staffGrid = document.getElementById('staffGrid');
+        staffGrid.innerHTML = '';
+        
+        if(snap.empty) {
+          staffGrid.innerHTML = '<p style="color:#8C8173;">No staff members found.</p>';
+        }
+
+        snap.forEach(doc => {
+          const d = doc.data();
+          globalStaff.push({id: doc.id, ...d});
+          
+          staffGrid.innerHTML += `
+            <div class="client-card">
+              <h3>${d.name}</h3>
+              <p>📞 ${d.phone || 'N/A'}</p>
+              <p>📧 ${d.email || 'N/A'}</p>
+              <p style="color:#d9534f; font-weight:500;">🆘 Emgcy: ${d.emergencyContact || 'N/A'}</p>
+              <p>🗓️ Days: ${d.availability && d.availability.length > 0 ? d.availability.join(', ') : 'Not set'}</p>
+              <div class="tag" style="background:${d.status === 'Active' ? '#5cb85c' : '#d9534f'}">${d.status || 'Active'}</div>
+              <div class="tag" style="background:#5A5957; margin-left:5px;">$${d.rate || 0}/hr</div>
+              <br><button class="btn-primary btn-edit-staff" data-id="${doc.id}" data-name="${d.name}" data-phone="${d.phone}" data-email="${d.email}" data-status="${d.status}" data-emergency="${d.emergencyContact || ''}" data-pin="${d.pin || ''}" data-rate="${d.rate || 0}" data-availability='${JSON.stringify(d.availability || [])}' style="font-size:11px; padding: 5px 10px; margin-top:15px; background: #EFEBE5; color: #4A3C39; border: 1px solid #C4A47C; border-radius: 4px;">Edit</button>
+            </div>
+          `;
+        });
+        
+        const mStaff = document.getElementById('mStaff');
+        if(mStaff) {
+            mStaff.innerHTML = '<option value="Unassigned">Unassigned</option>';
+            globalStaff.filter(s => s.status !== 'Inactive').forEach(s => {
+                mStaff.innerHTML += `<option value="${s.name}">${s.name}</option>`;
+            });
+        }
+
+        document.querySelectorAll('.btn-edit-staff').forEach(btn => {
+           btn.addEventListener('click', (e) => {
+               document.getElementById('sId').value = e.target.getAttribute('data-id');
+               document.getElementById('sName').value = e.target.getAttribute('data-name');
+               document.getElementById('sPhone').value = e.target.getAttribute('data-phone');
+               document.getElementById('sEmail').value = e.target.getAttribute('data-email');
+               document.getElementById('sStatus').value = e.target.getAttribute('data-status') || 'Active';
+               document.getElementById('sEmergency').value = e.target.getAttribute('data-emergency');
+               document.getElementById('sPin').value = e.target.getAttribute('data-pin') || '';
+               document.getElementById('sRate').value = e.target.getAttribute('data-rate') || '';
+               const avail = JSON.parse(e.target.getAttribute('data-availability') || '[]');
+               document.querySelectorAll('#sAvailability input').forEach(cb => {
+                   cb.checked = avail.includes(cb.value);
+               });
+               document.getElementById('staffModal').style.display = 'flex';
+           });
+        });
+
+      } catch(e) {
+        console.error(e);
+      }
+      loadBookings();
+    }
+
+    document.getElementById('openAddStaffBtn').addEventListener('click', () => {
+       document.getElementById('sId').value = '';
+       document.getElementById('sName').value = '';
+       document.getElementById('sPhone').value = '';
+       document.getElementById('sEmail').value = '';
+       document.getElementById('sStatus').value = 'Active';
+       document.getElementById('sEmergency').value = '';
+       document.getElementById('sPin').value = '';
+       document.getElementById('sRate').value = '';
+       document.querySelectorAll('#sAvailability input').forEach(cb => cb.checked = false);
+       document.getElementById('staffModal').style.display = 'flex';
+    });
+
+    document.getElementById('saveStaffBtn').addEventListener('click', async () => {
+       const id = document.getElementById('sId').value;
+       const btn = document.getElementById('saveStaffBtn');
+       btn.textContent = "Saving...";
+       const availArray = Array.from(document.querySelectorAll('#sAvailability input:checked')).map(cb => cb.value);
+       const data = {
+         name: document.getElementById('sName').value,
+         phone: document.getElementById('sPhone').value,
+         email: document.getElementById('sEmail').value,
+         status: document.getElementById('sStatus').value,
+         emergencyContact: document.getElementById('sEmergency').value,
+         pin: document.getElementById('sPin').value,
+         rate: parseFloat(document.getElementById('sRate').value) || 0,
+         availability: availArray
+       };
+       if(id) {
+         await window.db.collection('staff').doc(id).update(data);
+       } else {
+         await window.db.collection('staff').add(data);
+       }
+       btn.textContent = "Save Staff";
+       document.getElementById('staffModal').style.display = 'none';
+       loadStaff();
+    });
+
+    // Client Edit Logic
+    document.getElementById('closeClientModalBtn').addEventListener('click', () => {
+      document.getElementById('editClientModal').style.display = 'none';
+    });
+    
+    document.getElementById('saveClientBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('saveClientBtn');
+      const ids = JSON.parse(btn.getAttribute('data-ids') || '[]');
+      const newName = document.getElementById('ecName').value;
+      const newContact = document.getElementById('ecContact').value;
+      const newAddr = document.getElementById('ecAddr').value;
+      
+      btn.textContent = "Updating...";
+      for (const id of ids) {
+         await window.db.collection('bookings').doc(id).update({
+             clientName: newName,
+             clientContact: newContact,
+             addr: newAddr
+         });
+      }
+      btn.textContent = "Update All Bookings";
+      document.getElementById('editClientModal').style.display = 'none';
+      loadBookings();
+    });
+
+    // Load Bookings from Firestore
+    async function loadBookings() {
+      const tbody = document.getElementById('bookingsTable');
+      try {
+        const [querySnapshot, profilesSnap] = await Promise.all([
+            window.db.collection("bookings").orderBy("createdAt", "desc").get(),
+            window.db.collection("clientProfiles").get()
+        ]);
+        
+        let clientProfiles = {};
+        if (profilesSnap) {
+            profilesSnap.forEach(doc => {
+                clientProfiles[doc.id] = doc.data();
+            });
+        }
+
+        tbody.innerHTML = '';
+        
+        if(querySnapshot.empty) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 30px;">No bookings found.</td></tr>';
+            return;
+        }
+
+        let calEvents = [];
+        let clientsData = {};
+        
+        let allTimeRev = 0;
+        let thisMonthRev = 0;
+        let thisMonthPayroll = 0;
+        let bookingsThisMonthCount = 0;
+        
+        const staffRates = {};
+        globalStaff.forEach(s => staffRates[s.name] = s.rate || 0);
+
+        let monthlyData = {};
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        querySnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          const tr = document.createElement('tr');
+          
+          let bgColor = '#f0ad4e'; // Pending (Yellow)
+          if(data.status === 'Confirmed') bgColor = '#5cb85c'; // Green
+          if(data.status === 'Completed') bgColor = '#0275d8'; // Blue
+          if(data.status === 'Cancelled') bgColor = '#d9534f'; // Red
+          
+          let eventDate = data.date;
+          if (eventDate) {
+              calEvents.push({
+                  title: (data.time && data.time.length < 10 && !data.time.includes('Arrival') ? data.time + ' ' : '') + (data.clientName || data.name || 'Unknown') + "'s home",
+                  start: new Date(eventDate),
+                  backgroundColor: bgColor,
+                  borderColor: bgColor,
+                  extendedProps: {
+                      name: data.name,
+                      clientName: data.clientName,
+                      phone: data.phone,
+                      clientContact: data.clientContact,
+                      serviceType: data.serviceType || (data.quoteData && data.quoteData.service),
+                      addr: data.addr || (data.quoteData && data.quoteData.addr) || 'N/A',
+                      frequency: data.quoteData ? data.quoteData.frequency : 'One-Time',
+                      total: data.total,
+                      status: data.status,
+                      notes: data.notes || data.privateNotes
+                  }
+              });
+          }
+          
+          let clientNameStr = data.clientName || data.name || 'Unknown';
+          if(clientNameStr !== 'Unknown') {
+              if(!clientsData[clientNameStr]) {
+                  clientsData[clientNameStr] = {
+                      name: clientNameStr,
+                      phone: data.clientContact || data.phone || '',
+                      email: data.email || '',
+                      addr: data.addr || (data.quoteData && data.quoteData.addr) || '',
+                      visits: 0,
+                      totalSpent: 0,
+                      bookingIds: [],
+                      notes: []
+                  };
+              }
+              clientsData[clientNameStr].visits += 1;
+              clientsData[clientNameStr].bookingIds.push(docSnap.id);
+              
+              if(data.privateNotes && data.privateNotes.trim() !== '') {
+                  if(!clientsData[clientNameStr].notes.includes(data.privateNotes)) {
+                      clientsData[clientNameStr].notes.push(data.privateNotes);
+                  }
+              }
+              
+              let costStr = data.total || '0';
+              let costNum = parseFloat(costStr.toString().replace(/[^0-9.]/g, '')) || 0;
+              clientsData[clientNameStr].totalSpent += costNum;
+              
+              let payrollCost = 0;
+              if(data.clockIn && data.clockOut && data.staff && staffRates[data.staff]) {
+                  let hoursWorked = (new Date(data.clockOut) - new Date(data.clockIn)) / (1000 * 60 * 60);
+                  payrollCost = hoursWorked * staffRates[data.staff];
+              }
+
+              if(data.status !== 'Cancelled') {
+                  allTimeRev += costNum;
+                  
+                  let dateObj = new Date(data.date || data.createdAt || new Date());
+                  let m = dateObj.getMonth();
+                  let y = dateObj.getFullYear();
+                  let monthYear = dateObj.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+                  
+                  if(m === currentMonth && y === currentYear) {
+                      thisMonthRev += costNum;
+                      thisMonthPayroll += payrollCost;
+                      bookingsThisMonthCount += 1;
+                  }
+                  
+                  if(!monthlyData[monthYear]) monthlyData[monthYear] = 0;
+                  monthlyData[monthYear] += costNum;
+              }
+          }
+
+          let staffOptionsHtml = `<option value="Unassigned" ${data.staff === 'Unassigned' || !data.staff ? 'selected' : ''}>Unassigned</option>`;
+          globalStaff.filter(s => s.status !== 'Inactive').forEach(s => {
+              staffOptionsHtml += `<option value="${s.name}" ${data.staff === s.name ? 'selected' : ''}>${s.name}</option>`;
+          });
+          
+          tr.innerHTML = `
+            <td>
+              <strong>${data.date || 'N/A'}</strong><br>
+              <input type="text" class="time-input" data-id="${docSnap.id}" value="${data.time || ''}" placeholder="Assign time..." style="width: 130px; padding: 4px; font-size: 11px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px;">
+            </td>
+            <td><strong>${data.clientName || data.name || 'Unknown'}</strong><br><span style="color:#777; font-size:12px;">${data.clientContact || data.email}</span></td>
+            <td>
+              ${data.serviceType || (data.quoteData && data.quoteData.service) || 'N/A'}<br>
+              ${data.photos && data.photos.length > 0 ? `<button class="btn-view-photos" data-photos='${JSON.stringify(data.photos)}' style="margin-top:5px; padding:4px 8px; font-size:11px; background:#0275d8; color:white; border:none; border-radius:4px; cursor:pointer;">📸 View Photos (${data.photos.length})</button>` : ''}
+            </td>
+            <td>
+              <select class="staff-select" data-id="${docSnap.id}">
+                ${staffOptionsHtml}
+              </select>
+              <br>
+              <button class="btn-print-job" data-booking='${JSON.stringify({
+                  date: data.date, time: data.time, clientName: data.clientName || data.name,
+                  addr: data.addr || (data.quoteData && data.quoteData.addr), service: data.serviceType || (data.quoteData && data.quoteData.service),
+                  frequency: data.quoteData ? data.quoteData.frequency : "One-Time", clientNotes: data.notes, managerNotes: data.privateNotes,
+                  addOns: data.quoteData && data.quoteData.addOns ? data.quoteData.addOns : []
+              }).replace(/'/g, "&apos;")}' style="margin-top: 5px; padding: 4px; font-size: 11px; cursor: pointer; background: #fff; border: 1px solid #ccc; border-radius: 4px;">🖨️ Print</button>
+            </td>
+            <td>
+              <select class="status-select" data-id="${docSnap.id}">
+                <option value="Pending" ${data.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                <option value="Confirmed" ${data.status === 'Confirmed' ? 'selected' : ''}>Confirmed</option>
+                <option value="Completed" ${data.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                <option value="Cancelled" ${data.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+              </select>
+              <br>
+              <button class="btn-review" data-id="${docSnap.id}" data-client="${data.clientName || data.name || ''}" data-email="${data.email || ''}" style="margin-top: 5px; padding: 4px; font-size: 11px; cursor: pointer; background: #EFEBE5; color: #4A3C39; border: 1px solid #C4A47C; border-radius: 4px;">⭐ Request Review</button>
+            </td>
+            <td>
+              <select class="payment-select" data-id="${docSnap.id}">
+                <option value="Pending" ${data.paymentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
+                <option value="requires_capture" ${data.paymentStatus === 'requires_capture' ? 'selected' : ''}>Authorized (Hold)</option>
+                <option value="Invoice Sent" ${data.paymentStatus === 'Invoice Sent' ? 'selected' : ''}>Invoice Sent</option>
+                <option value="Paid (Stripe)" ${data.paymentStatus === 'Paid (Stripe)' || data.paymentStatus === 'succeeded' ? 'selected' : ''}>Paid (Stripe)</option>
+                <option value="Paid (Cash/Zelle)" ${data.paymentStatus === 'Paid (Cash/Zelle)' ? 'selected' : ''}>Paid (Cash/Zelle)</option>
+                <option value="Canceled" ${data.paymentStatus === 'canceled' ? 'selected' : ''}>Canceled</option>
+              </select>
+              <br>
+              ${data.paymentIntentId && data.paymentStatus === 'requires_capture' ? 
+                `<button class="btn-charge-card" data-id="${docSnap.id}" data-intent="${data.paymentIntentId}" style="margin-top: 5px; padding: 4px; font-size: 11px; cursor: pointer; background: #5cb85c; color: white; border: none; border-radius: 4px; width: 100%;">💳 Charge Card Now</button>
+                 <br>
+                 <button class="btn-cancel-hold" data-id="${docSnap.id}" data-intent="${data.paymentIntentId}" style="margin-top: 5px; padding: 4px; font-size: 11px; cursor: pointer; background: #d9534f; color: white; border: none; border-radius: 4px; width: 100%;">🚫 Cancel Hold</button>` 
+                : `<button class="btn-invoice" data-id="${docSnap.id}" data-client="${data.clientName || data.name || ''}" data-total="${data.total || '0'}" data-email="${data.email || ''}" style="margin-top: 5px; padding: 4px; font-size: 11px; cursor: pointer; background: #fff; border: 1px solid #ccc; border-radius: 4px; width: 100%;">💳 Send Invoice</button>`
+              }
+            </td>
+            <td>
+              <textarea class="notes-box" placeholder="Internal notes...">${data.privateNotes || ''}</textarea>
+              <br><button class="btn-save" data-id="${docSnap.id}">Save Note</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+        
+        // Bind View Photos
+        document.querySelectorAll('.btn-view-photos').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const photos = JSON.parse(e.target.getAttribute('data-photos') || '[]');
+                const gallery = document.getElementById('photoGallery');
+                gallery.innerHTML = '';
+                photos.forEach(base64 => {
+                    gallery.innerHTML += `<img src="${base64}" style="max-width:100%; border-radius:8px; margin-bottom:15px; box-shadow:0 2px 10px rgba(0,0,0,0.1);">`;
+                });
+                document.getElementById('photoModal').style.display = 'flex';
+            });
+        });
+
+        // Update Revenue DOM
+        document.getElementById('revAllTime').textContent = '$' + allTimeRev.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('revThisMonth').textContent = '$' + thisMonthRev.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        
+        let netProfit = thisMonthRev - thisMonthPayroll;
+        let margin = thisMonthRev > 0 ? (netProfit / thisMonthRev * 100).toFixed(1) : 0;
+        
+        document.getElementById('payThisMonth').textContent = '$' + thisMonthPayroll.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('profitThisMonth').textContent = '$' + netProfit.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('marginThisMonth').textContent = margin + '% Profit Margin';
+        
+        document.getElementById('bookingsThisMonth').textContent = bookingsThisMonthCount;
+        
+        // Draw Chart
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        if (window.revenueChartInstance) { window.revenueChartInstance.destroy(); }
+        
+        const sortedMonths = Object.keys(monthlyData).sort((a, b) => new Date(a) - new Date(b));
+        const chartValues = sortedMonths.map(m => monthlyData[m]);
+        
+        window.revenueChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: sortedMonths,
+                datasets: [{
+                    label: 'Gross Revenue ($)',
+                    data: chartValues,
+                    backgroundColor: '#D5BBAE',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        if (calendar) {
+            calendar.removeAllEvents();
+            calendar.addEventSource(calEvents);
+        }
+
+        // Render Clients
+        const clientsGrid = document.getElementById('clientsGrid');
+        clientsGrid.innerHTML = '';
+        Object.values(clientsData).forEach(c => {
+           let safeId = c.name.replace(/[^a-zA-Z0-9]/g, '');
+           let globalNote = clientProfiles[c.name] ? (clientProfiles[c.name].globalNote || '') : '';
+           
+           let card = document.createElement('div');
+           card.className = 'client-card';
+           card.innerHTML = `
+             <h3>${c.name}</h3>
+             <p>📞 ${c.phone || 'N/A'}</p>
+             ${c.email ? `<p>✉️ ${c.email}</p>` : ''}
+             <p>📍 ${c.addr || 'N/A'}</p>
+             <p>✨ <strong>${c.visits}</strong> lifetime bookings</p>
+             <div class="tag">Lifetime Value: $${c.totalSpent.toFixed(2)}</div>
+             
+             <div style="margin-top:15px; padding-top:15px; border-top:1px dashed #e0e0e0;">
+               <label style="font-size:11px; font-weight:bold; color:#8C8173; text-transform:uppercase;">Secret Client Note:</label>
+               <textarea class="notes-box" id="gnote-${safeId}" placeholder="Write a permanent note about this client here...">${globalNote}</textarea>
+               <button class="btn-save" onclick="saveGlobalNote('${c.name.replace(/'/g, "\\'")}', this)" style="background:#8C8173;">Save Secret Note</button>
+             </div>
+
+             ${c.notes.length > 0 ? `<div style="font-size:12px; background:#f9f9f9; padding:8px; border-radius:4px; margin-top:15px;"><strong>📝 Booking Notes:</strong><br> ${c.notes.join('<br>')}</div>` : ''}
+             <div style="margin-top: 15px; display:flex; gap:10px;">
+               <button class="btn-edit-client" data-name="${c.name.replace(/"/g, '&quot;')}" data-phone="${c.phone.replace(/"/g, '&quot;')}" data-addr="${c.addr.replace(/"/g, '&quot;')}" data-ids='${JSON.stringify(c.bookingIds)}' style="flex:1; padding: 6px; cursor:pointer; background:#fff; border:1px solid #ccc; border-radius:4px; font-size:12px;">✏️ Edit</button>
+               <button class="btn-cancel-client" data-ids='${JSON.stringify(c.bookingIds)}' style="flex:1; padding: 6px; cursor:pointer; background:#fff; border:1px solid #d9534f; color:#d9534f; border-radius:4px; font-size:12px;">🚫 Ban/Cancel</button>
+             </div>
+           `;
+           clientsGrid.appendChild(card);
+        });
+
+        // Attach event listeners to new elements
+        attachListeners();
+
+      } catch (error) {
+        console.error("Error loading bookings:", error);
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">Please configure Firebase keys correctly.</td></tr>';
+      }
+    }
+
+    // Global Client Note Logic
+    window.saveGlobalNote = async function(clientName, btn) {
+        btn.textContent = "Saving...";
+        const safeId = clientName.replace(/[^a-zA-Z0-9]/g, '');
+        const noteText = document.getElementById(`gnote-${safeId}`).value;
+        try {
+            await window.db.collection('clientProfiles').doc(clientName).set({ globalNote: noteText }, { merge: true });
+            btn.textContent = "Saved ✓";
+            btn.style.background = "#5cb85c";
+            setTimeout(() => {
+                btn.textContent = "Save Secret Note";
+                btn.style.background = "#8C8173";
+            }, 2000);
+        } catch(e) {
+            console.error(e);
+            btn.textContent = "Error!";
+            btn.style.background = "#d9534f";
+        }
+    };
+
+    function attachListeners() {
+      // Client Buttons
+      document.querySelectorAll('.btn-edit-client').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          document.getElementById('ecName').value = e.target.getAttribute('data-name');
+          document.getElementById('ecContact').value = e.target.getAttribute('data-phone');
+          document.getElementById('ecAddr').value = e.target.getAttribute('data-addr');
+          document.getElementById('saveClientBtn').setAttribute('data-ids', e.target.getAttribute('data-ids'));
+          document.getElementById('editClientModal').style.display = 'flex';
+        });
+      });
+
+      document.querySelectorAll('.btn-cancel-client').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          if (confirm("Are you sure you want to mark ALL bookings for this client as Cancelled?")) {
+            const ids = JSON.parse(e.target.getAttribute('data-ids') || '[]');
+            e.target.textContent = "Cancelling...";
+            for (const id of ids) {
+               await window.db.collection('bookings').doc(id).update({ status: 'Cancelled' });
+            }
+            loadBookings();
+          }
+        });
+      });
+
+      // Time Changes
+      document.querySelectorAll('.time-input').forEach(input => {
+        input.addEventListener('change', async (e) => {
+          const id = e.target.getAttribute('data-id');
+          await window.db.collection("bookings").doc(id).update({ time: e.target.value });
+          e.target.style.borderColor = "#5cb85c"; // Green border on success
+          setTimeout(() => e.target.style.borderColor = "#ccc", 2000);
+        });
+      });
+
+      // Staff Changes
+      document.querySelectorAll('.staff-select').forEach(select => {
+        select.addEventListener('change', async (e) => {
+          const id = e.target.getAttribute('data-id');
+          await window.db.collection("bookings").doc(id).update({ staff: e.target.value });
+        });
+      });
+
+      // Print Job Sheet
+      document.querySelectorAll('.btn-print-job').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const booking = JSON.parse(e.target.getAttribute('data-booking'));
+          
+          let checklists = {
+            "Signature Clean": {
+              "All Rooms": [
+                "Dusting and wiping top-to-bottom (ceiling fans, vents, blinds, baseboards)",
+                "Wiping down all accessible surfaces and furniture",
+                "Vacuuming carpets and mopping hard floors",
+                "Emptying all trash receptacles",
+                "Sanitizing high-touch points (doorknobs, light switches)",
+                "Sliding glass doors cleaned (inside & out)"
+              ],
+              "Kitchen": [
+                "Wiping exterior of all cabinets",
+                "Cleaning exterior and interior of microwave",
+                "Degreasing and scrubbing stovetop",
+                "Sanitizing countertops and backsplashes",
+                "Polishing the sink and fixtures",
+                "Wiping down the exterior of all appliances"
+              ],
+              "Bathrooms": [
+                "Deep scrubbing of showers, tubs, and tile grout",
+                "Thorough sanitizing of toilets (inside and out)",
+                "Polishing mirrors and glass doors",
+                "Cleaning and polishing sink fixtures",
+                "Folding towels hotel-style"
+              ]
+            },
+            "Transition Reset": {
+              "All Rooms": [
+                "Dusting and wiping top-to-bottom (ceiling fans, vents, blinds, baseboards)",
+                "Vacuuming and mopping all floors",
+                "Sliding glass doors cleaned (inside & out)",
+                "Thorough removal of cobwebs in all corners and ceilings",
+                "Detailed dusting of all blinds and shutters"
+              ],
+              "Deep Interiors": [
+                "Thorough cleaning inside all empty kitchen cabinets and drawers",
+                "Thorough cleaning inside all empty bathroom cabinets and drawers",
+                "Wiping down shelves inside all empty closets throughout the house"
+              ],
+              "Kitchen & Bathrooms": [
+                "Deep scrubbing of all bathrooms and kitchen surfaces",
+                "Deep cleaning the interior of the refrigerator and freezer",
+                "Deep cleaning the interior of the oven"
+              ],
+              "Details & Edges": [
+                "Intensive hand-wiping of all baseboards",
+                "Wiping down door frames and window sills"
+              ]
+            },
+            "5-Star Turnover": {
+              "The Baseline Clean": [
+                "Thorough dusting of all surfaces and furniture",
+                "Vacuuming carpets and mopping hard floors",
+                "Emptying all trash receptacles",
+                "Sanitizing high-touch points (remotes, doorknobs, lockboxes)",
+                "Deep scrubbing of bathrooms (toilets, showers, sinks)",
+                "Cleaning kitchen surfaces, inside microwave, and stovetop",
+                "Sliding glass doors cleaned (inside & out)"
+              ],
+              "Staging & Reset": [
+                "Stripping used linens and towels",
+                "Washing and changing all bed linens",
+                "Making beds with professional hotel-style tucks",
+                "Folding fresh towels aesthetically",
+                "Resetting decorative pillows, throws, and furniture placement"
+              ],
+              "Inventory & Restocking": [
+                "Restocking toilet paper and paper towels",
+                "Refilling hand soaps, shampoo, and body wash dispensers",
+                "Restocking coffee, tea, and basic kitchen supplies",
+                "Emptying the dishwasher and putting away clean dishes"
+              ],
+              "Damage Check & Reporting": [
+                "Visual inspection for stains, damages, or missing items",
+                "Immediate notification to the host of any issues found",
+                "Checking that appliances and lights are turned off",
+                "Securing all windows and doors before departure"
+              ],
+              "Included Extras": [
+                "IN FRIDGE, IN OVEN, IN EMPTY CABINETS and balcony and patio set is included"
+              ]
+            },
+            "Post-Construction": {
+              "Dust Eradication": [
+                "Dry dusting walls and ceilings to remove fine drywall dust",
+                "Vacuuming inside and outside of all vents and duct covers",
+                "Wiping down all ceiling fans and light fixtures",
+                "Detailed dusting of all baseboards, door frames, and window sills",
+                "Thorough vacuuming of all carpets and hard floors (multiple passes)",
+                "Sliding glass doors cleaned (inside & out)"
+              ],
+              "Deep Cabinetry Cleaning": [
+                "Vacuuming and wet-wiping the inside of all new kitchen cabinets and drawers",
+                "Vacuuming and wet-wiping the inside of all new bathroom cabinets and vanities",
+                "Wiping down the exterior of all cabinetry to remove sawdust and fingerprints",
+                "Cleaning all newly installed closet shelving"
+              ],
+              "Surface Restoration & Polishing": [
+                "Removing small paint splatters, adhesive, or caulk residue",
+                "Polishing all new appliances",
+                "Deep scrubbing of newly installed tiles to remove grout haze",
+                "Polishing all mirrors, interior glass doors, and interior windows",
+                "Shining all new chrome, brass, and stainless steel fixtures"
+              ]
+            },
+            "Tailored Focus": {
+              "Custom Checklist": [
+                "Focus entirely on deep cleaning the kitchen and organizing the pantry",
+                "Spend the hours scrubbing grout and polishing all bathrooms",
+                "Help with intensive decluttering or seasonal closet organization",
+                "Tackle specific, high-traffic areas before a party or event",
+                "Handle unpacking and breaking down boxes in a new home"
+              ]
+            }
+          };
+          
+          let mappedService = booking.service || "";
+          let serviceLower = mappedService.toLowerCase();
+          
+          if(serviceLower.includes('signature')) mappedService = 'Signature Clean';
+          else if(serviceLower.includes('transition')) mappedService = 'Transition Reset';
+          else if(serviceLower.includes('turnover') || serviceLower.includes('5-star')) mappedService = '5-Star Turnover';
+          else if(serviceLower.includes('postconstruction') || serviceLower.includes('post-construction')) mappedService = 'Post-Construction';
+          else if(serviceLower.includes('tailored')) mappedService = 'Tailored Focus';
+
+          let checklistHtml = '';
+          let tasksData = checklists[mappedService] || {"Tasks": ["Standard cleaning procedures"]};
+          
+          Object.keys(tasksData).forEach(section => {
+              checklistHtml += `<h4 style="font-family:'Inter', sans-serif; font-size:11px; color:#C4A47C; text-transform:uppercase; letter-spacing:1px; margin: 15px 0 8px 0; border-bottom:1px solid #EFEBE5; padding-bottom:4px;">${section}</h4>`;
+              tasksData[section].forEach(task => {
+                  checklistHtml += `<div style="margin-bottom:8px; display:flex; align-items:flex-start;"><div style="min-width:13px; max-width:13px; height:13px; border:1px solid #C4A47C; margin-right:10px; border-radius:3px; margin-top:2px;"></div> <span style="font-size:13px; color:#444; line-height:1.4;">${task}</span></div>`;
+              });
+          });
+          
+          let addOnsHtml = '';
+          if (booking.addOns && booking.addOns.length > 0) {
+             addOnsHtml = `
+               <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #C4A47C;">
+                 <h3 style="font-family:'Playfair Display', serif; color:#8C8173; font-size:16px; margin:0 0 10px 0;">✨ Client Add-Ons</h3>
+             `;
+             booking.addOns.forEach(addon => {
+                 let name = addon.id || addon.name || addon;
+                 name = name.toString().replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                 let qty = addon.qty || addon.count || 1;
+                 addOnsHtml += `<div style="margin-bottom:8px; display:flex; align-items:center;"><div style="width:14px; height:14px; border:1px solid #C4A47C; margin-right:12px; border-radius:3px; background:#F8F3ED;"></div> <span style="font-size:14px; color:#C27A65; font-weight:600;">[ADD-ON] ${name} ${qty > 1 ? '(x' + qty + ')' : ''}</span></div>`;
+             });
+             addOnsHtml += `</div>`;
+          }
+          
+          const printWindow = window.open('', '_blank');
+          printWindow.document.write(`
+            <html><head><title>Job Sheet - ${booking.clientName}</title>
+            <style>
+              @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Inter:wght@400;500;600&display=swap');
+              @media print {
+                body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              }
+              body { 
+                font-family: 'Inter', sans-serif; 
+                margin: 0; 
+                padding: 40px; 
+                color: #2C2B29; 
+                background-color: #EFEBE5; 
+                position: relative;
+                overflow: hidden;
+              }
+              /* Decorative shapes */
+              .blob-1 { position: absolute; bottom: -100px; left: -100px; width: 400px; height: 400px; background-color: #C27A65; border-radius: 50%; z-index: 1; }
+              .blob-2 { position: absolute; top: -100px; left: -50px; width: 350px; height: 350px; background-color: #D6A893; border-radius: 50%; z-index: 1; }
+              .blob-3 { position: absolute; top: 30px; right: -80px; width: 250px; height: 250px; background-color: #4A3C39; border-radius: 50%; z-index: 1; }
+              .blob-4 { position: absolute; bottom: 50px; right: -50px; width: 200px; height: 200px; background-color: #E2D1C3; border-radius: 50%; z-index: 1; }
+              
+              /* Main container */
+              .container {
+                position: relative;
+                z-index: 10;
+                border: 2px solid #C4A47C;
+                padding: 40px;
+                background: rgba(239, 235, 229, 0.85);
+                min-height: 800px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+              }
+              h1 { 
+                font-family: 'Playfair Display', serif; 
+                color: #4A3C39; 
+                text-align: center; 
+                font-size: 38px;
+                margin-top: 0;
+                margin-bottom: 5px;
+              }
+              .subtitle {
+                text-align: center;
+                font-size: 11px;
+                letter-spacing: 3px;
+                text-transform: uppercase;
+                color: #C4A47C;
+                margin-bottom: 40px;
+                font-weight: 600;
+              }
+              h2 { font-family: 'Playfair Display', serif; color: #4A3C39; font-size: 20px; border-bottom: 1px solid #C4A47C; padding-bottom: 8px;}
+              
+              .info-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+                margin-bottom: 30px;
+              }
+              .info-item {
+                background: #fff;
+                padding: 15px;
+                border-radius: 8px;
+                border: 1px solid #D9D2C5;
+              }
+              .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #8C8173; display: block; margin-bottom: 5px; font-weight: 600;}
+              .value { font-size: 15px; font-weight: 500; color: #2C2B29; }
+              
+              .box { background-color: #fff; padding: 25px; border-radius: 8px; border: 1px solid #D9D2C5; margin-bottom: 20px; }
+              .signature {
+                margin-top: 60px;
+                text-align: center;
+              }
+              .sig-line {
+                width: 250px;
+                border-bottom: 1px solid #4A3C39;
+                margin: 0 auto 10px auto;
+              }
+            </style>
+            </head><body>
+              <div class="blob-1"></div>
+              <div class="blob-2"></div>
+              <div class="blob-3"></div>
+              <div class="blob-4"></div>
+              
+              <div class="container">
+                <h1>Aligned Spaces</h1>
+                <div class="subtitle">Official Service Order</div>
+                
+                <div class="info-grid">
+                  <div class="info-item">
+                    <span class="label">Date & Time</span>
+                    <span class="value">${booking.date || 'TBD'} at ${booking.time || 'TBD'}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="label">Client</span>
+                    <span class="value">${booking.clientName || 'Unknown'}</span>
+                  </div>
+                  <div class="info-item" style="grid-column: span 2;">
+                    <span class="label">Location</span>
+                    <span class="value">${booking.addr || 'N/A'}</span>
+                  </div>
+                  <div class="info-item" style="grid-column: span 2;">
+                    <span class="label">Service Required</span>
+                    <span class="value">${booking.service || 'N/A'} &mdash; <em style="color:#8C8173">${booking.frequency}</em></span>
+                  </div>
+                </div>
+                
+                <div class="box">
+                  <h2>Service Checklist</h2>
+                  <div style="margin-top: 15px;">
+                    ${checklistHtml}
+                    ${addOnsHtml}
+                  </div>
+                </div>
+                
+                <div class="info-grid">
+                  <div class="info-item">
+                    <span class="label">Client Instructions</span>
+                    <p style="font-size: 14px; line-height:1.6; color:#444; margin:0;">${booking.clientNotes || 'None.'}</p>
+                  </div>
+                  <div class="info-item">
+                    <span class="label">Manager Notes (Private)</span>
+                    <p style="font-size: 14px; line-height:1.6; color:#444; margin:0;">${booking.managerNotes || 'None.'}</p>
+                  </div>
+                </div>
+                
+                <div class="signature">
+                  <div class="sig-line"></div>
+                  <span style="font-size: 12px; color: #8C8173; font-style: italic;">Cleaner Signature & Confirmation</span>
+                </div>
+              </div>
+            </body></html>
+          `);
+          printWindow.document.close();
+          setTimeout(() => { printWindow.print(); }, 800);
+        });
+      });
+
+      // Staff Assignment Changes
+      document.querySelectorAll('.staff-select').forEach(select => {
+        select.addEventListener('change', async (e) => {
+          const id = e.target.getAttribute('data-id');
+          await window.db.collection("bookings").doc(id).update({ staff: e.target.value });
+        });
+      });
+
+      // Invoice and Review
+      document.querySelectorAll('.btn-invoice').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+              const id = e.target.getAttribute('data-id');
+              const client = e.target.getAttribute('data-client');
+              const total = e.target.getAttribute('data-total');
+              await window.db.collection("bookings").doc(id).update({ paymentStatus: 'Invoice Sent' });
+              
+              const subject = encodeURIComponent(`Invoice from Aligned Spaces`);
+              const body = encodeURIComponent(`Hi ${client},\n\nThank you for choosing Aligned Spaces. Your total for the recent cleaning service is $${total}.\n\nPlease pay securely online via this link: [Stripe Link Placeholder]\n\nThank you!`);
+              window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+              loadBookings();
+          });
+      });
+
+      document.querySelectorAll('.btn-charge-card').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+              if(!confirm("Are you sure you want to capture this payment? The client's card will be charged immediately.")) return;
+              const btnEl = e.target;
+              const id = btnEl.getAttribute('data-id');
+              const intentId = btnEl.getAttribute('data-intent');
+              btnEl.textContent = "Charging...";
+              
+              try {
+                  const res = await fetch('/capture-payment', {
+                      method: 'POST',
+                      headers: {'Content-Type': 'application/json'},
+                      body: JSON.stringify({ paymentIntentId: intentId })
+                  });
+                  const data = await res.json();
+                  if (data.success) {
+                      await window.db.collection("bookings").doc(id).update({ paymentStatus: 'succeeded' });
+                      loadBookings();
+                  } else {
+                      alert("Error: " + data.error);
+                      btnEl.textContent = "💳 Charge Card Now";
+                  }
+              } catch(err) {
+                  alert("Error capturing payment.");
+                  btnEl.textContent = "💳 Charge Card Now";
+              }
+          });
+      });
+
+      document.querySelectorAll('.btn-cancel-hold').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+              if(!confirm("Are you sure you want to cancel this hold? The funds will be released back to the client.")) return;
+              const btnEl = e.target;
+              const id = btnEl.getAttribute('data-id');
+              const intentId = btnEl.getAttribute('data-intent');
+              btnEl.textContent = "Cancelling...";
+              
+              try {
+                  const res = await fetch('/cancel-payment', {
+                      method: 'POST',
+                      headers: {'Content-Type': 'application/json'},
+                      body: JSON.stringify({ paymentIntentId: intentId })
+                  });
+                  const data = await res.json();
+                  if (data.success) {
+                      await window.db.collection("bookings").doc(id).update({ paymentStatus: 'canceled' });
+                      loadBookings();
+                  } else {
+                      alert("Error: " + data.error);
+                      btnEl.textContent = "🚫 Cancel Hold";
+                  }
+              } catch(err) {
+                  alert("Error cancelling payment hold.");
+                  btnEl.textContent = "🚫 Cancel Hold";
+              }
+          });
+      });
+
+      document.querySelectorAll('.btn-review').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+              const client = e.target.getAttribute('data-client');
+              const subject = encodeURIComponent(`How did we do?`);
+              const body = encodeURIComponent(`Hi ${client},\n\nWe hope you're loving your clean space! If you were happy with our service, we would really appreciate it if you could leave us a 5-star review on Google:\n\n[Google Review Link Placeholder]\n\nIf anything wasn't perfect, please reply to this email and let us know so we can fix it.\n\nWarmly,\nAligned Spaces Team`);
+              window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+          });
+      });
+
+      // Status Changes
+      document.querySelectorAll('.status-select').forEach(select => {
+        select.addEventListener('change', async (e) => {
+          const id = e.target.getAttribute('data-id');
+          await window.db.collection("bookings").doc(id).update({ status: e.target.value });
+        });
+      });
+
+      // Payment Changes
+      document.querySelectorAll('.payment-select').forEach(select => {
+        select.addEventListener('change', async (e) => {
+          const id = e.target.getAttribute('data-id');
+          await window.db.collection("bookings").doc(id).update({ paymentStatus: e.target.value });
+        });
+      });
+
+      // Notes Save
+      document.querySelectorAll('.btn-save').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = e.target.getAttribute('data-id');
+          const textarea = e.target.previousElementSibling.previousElementSibling; 
+          btn.textContent = "Saving...";
+          await window.db.collection("bookings").doc(id).update({ privateNotes: textarea.value });
+          btn.textContent = "Saved ✓";
+          setTimeout(() => btn.textContent = "Save Note", 2000);
+        });
+      });
+    }
+
+    // Modal Logic
+    const modal = document.getElementById('bookingModal');
+    document.getElementById('openModalBtn').addEventListener('click', () => modal.style.display = 'flex');
+    document.getElementById('closeModalBtn').addEventListener('click', () => modal.style.display = 'none');
+
+    document.getElementById('saveManualBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('saveManualBtn');
+      btn.textContent = "Saving...";
+      
+      try {
+        const clientName = document.getElementById('mName').value;
+        const clientContact = document.getElementById('mContact').value;
+        const serviceType = document.getElementById('mService').value;
+        const staff = document.getElementById('mStaff').value;
+        const dateTimeStr = document.getElementById('mDate').value;
+        const freq = document.getElementById('mFrequency') ? document.getElementById('mFrequency').value : 'One-Time';
+        const occurrences = document.getElementById('mOccurrences') ? parseInt(document.getElementById('mOccurrences').value) : 1;
+        
+        if(!dateTimeStr) {
+            alert("Please select a date and time.");
+            btn.textContent = "Save Booking";
+            return;
+        }
+
+        let baseDate = new Date(dateTimeStr);
+        let timeStr = dateTimeStr.split('T')[1] || '';
+
+        for(let i = 0; i < occurrences; i++) {
+            let currentDate = new Date(baseDate);
+            
+            if(freq === 'Weekly') {
+                currentDate.setDate(currentDate.getDate() + (i * 7));
+            } else if(freq === 'Bi-Weekly') {
+                currentDate.setDate(currentDate.getDate() + (i * 14));
+            } else if(freq === 'Monthly') {
+                currentDate.setMonth(currentDate.getMonth() + i);
+            }
+            
+            let year = currentDate.getFullYear();
+            let month = String(currentDate.getMonth() + 1).padStart(2, '0');
+            let day = String(currentDate.getDate()).padStart(2, '0');
+            let dateStr = `${year}-${month}-${day}`;
+
+            await window.db.collection("bookings").add({
+              clientName: clientName,
+              clientContact: clientContact,
+              serviceType: serviceType,
+              staff: staff,
+              date: dateStr,
+              time: timeStr,
+              status: "Confirmed",
+              paymentStatus: "Pending",
+              privateNotes: freq !== 'One-Time' ? `Recurring: ${i+1} of ${occurrences}` : "",
+              quoteData: { frequency: freq },
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+        
+        modal.style.display = 'none';
+        btn.textContent = "Save Booking";
+        loadBookings(); // Reload table
+      } catch (e) {
+        console.error(e);
+        btn.textContent = "Error saving";
+      }
+    });
+    // Leads Logic
+    async function loadLeads() {
+      const tbody = document.getElementById('leadsTable');
+      try {
+        const querySnapshot = await window.db.collection("bookings").where("status", "==", "Pending").get();
+        tbody.innerHTML = '';
+        if(querySnapshot.empty) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No pending leads.</td></tr>';
+            return;
+        }
+        
+        querySnapshot.forEach(doc => {
+            const data = doc.data();
+            const dateStr = data.createdAt ? data.createdAt.toDate().toLocaleDateString() : 'Unknown';
+            tbody.innerHTML += `
+              <tr>
+                <td>${dateStr}</td>
+                <td><strong>${data.clientName || 'Unknown'}</strong></td>
+                <td>${data.clientContact || 'N/A'}</td>
+                <td>${data.serviceType || (data.quoteData && data.quoteData.service) || 'N/A'}<br><span style="font-size:11px; color:#888;">${data.addr || ''}</span></td>
+                <td>
+                  <button class="btn-primary" onclick="confirmLead('${doc.id}')" style="font-size:12px; padding:6px 12px; background:#5cb85c; border-color:#5cb85c;">Approve / Confirm</button>
+                </td>
+              </tr>
+            `;
+        });
+      } catch(e) {
+          console.error(e);
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Error loading leads.</td></tr>';
+      }
+    }
+
+    window.confirmLead = async function(id) {
+        if(confirm("Mark this lead as a Confirmed Booking?")) {
+            await window.db.collection('bookings').doc(id).update({ status: 'Confirmed' });
+            loadLeads();
+            loadBookings();
+        }
+    };
+
+    // Payroll Logic
+    document.getElementById('btnCalcPayroll').addEventListener('click', async () => {
+        const start = document.getElementById('prStart').value;
+        const end = document.getElementById('prEnd').value;
+        const tbody = document.getElementById('payrollTable');
+        
+        if(!start || !end) {
+            alert("Please select a start and end date.");
+            return;
+        }
+
+        try {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Calculating...</td></tr>';
+            
+            // Fetch all bookings in range that are Completed
+            const snap = await window.db.collection('bookings')
+                .where('status', '==', 'Completed')
+                .where('date', '>=', start)
+                .where('date', '<=', end)
+                .get();
+
+            let staffTotals = {};
+
+            snap.forEach(doc => {
+                const data = doc.data();
+                if(data.staff && data.staff !== 'Unassigned') {
+                    if(!staffTotals[data.staff]) {
+                        staffTotals[data.staff] = { jobs: 0, hours: 0 };
+                    }
+                    staffTotals[data.staff].jobs += 1;
+                    
+                    // Calculate hours if clockIn and clockOut exist
+                    if(data.clockIn && data.clockOut) {
+                        const t1 = new Date(data.clockIn).getTime();
+                        const t2 = new Date(data.clockOut).getTime();
+                        const hrs = (t2 - t1) / (1000 * 60 * 60);
+                        if(hrs > 0) staffTotals[data.staff].hours += hrs;
+                    }
+                }
+            });
+
+            tbody.innerHTML = '';
+            
+            if(Object.keys(staffTotals).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No completed jobs with assigned staff in this range.</td></tr>';
+                return;
+            }
+
+            for(const [staffName, totals] of Object.entries(staffTotals)) {
+                const staffDoc = globalStaff.find(s => s.name === staffName);
+                const rate = staffDoc ? (staffDoc.rate || 0) : 0;
+                const totalPay = totals.hours * rate;
+                
+                tbody.innerHTML += `
+                  <tr>
+                    <td><strong>${staffName}</strong></td>
+                    <td>${totals.jobs}</td>
+                    <td>${totals.hours.toFixed(2)} hrs</td>
+                    <td>$${rate.toFixed(2)}/hr</td>
+                    <td style="color:#5cb85c; font-weight:bold;">$${totalPay.toFixed(2)}</td>
+                  </tr>
+                `;
+            }
+        } catch(e) {
+            console.error(e);
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Error calculating payroll.</td></tr>';
+        }
+    });
+
+  </script>
+</body>
+</html>

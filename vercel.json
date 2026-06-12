@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "backend/server.js", "use": "@vercel/node" },
+    { "src": "web/**", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/create-payment-intent", "dest": "/backend/server.js" },
+    { "src": "/capture-payment", "dest": "/backend/server.js" },
+    { "src": "/cancel-payment", "dest": "/backend/server.js" },
+    { "src": "/send-booking", "dest": "/backend/server.js" },
+    { "src": "/(.*)", "dest": "/web/$1" }
+  ]
+}

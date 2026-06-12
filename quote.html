@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Your Instant Quote | ALIGNED SPACES</title>
+    <meta name="description"
+        content="Calculate the exact price for your home cleaning service instantly. Transparent, flat-rate pricing with no hidden fees in Las Vegas.">
+    <meta property="og:title" content="Instant Quote | ALIGNED SPACES">
+    <meta property="og:description"
+        content="Get an instant, transparent price for premium cleaning services in Las Vegas. No hidden fees.">
+    <meta property="og:type" content="website">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="quote.css">
+    <!-- Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <!-- Flatpickr for Premium Calendar -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    
+    <!-- Firebase Compat Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+</head>
+
+<body class="quote-page has-announcement">
+
+    <!-- Announcement Bar -->
+    <div class="announcement-bar">
+        Celebrating our Inaugural Launch — Enjoy an exclusive <span class="highlight">20% Discount</span> on your first
+        Signature Clean
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar" style="background: var(--bg-primary); position: fixed;">
+        <div class="logo">
+            <a href="index.html" style="display:flex; flex-direction:column; align-items:center;">
+                <div class="logo-serif">ALIGNED</div>
+                <div class="logo-line"></div>
+                <div class="logo-sans">SPACES</div>
+            </a>
+        </div>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">Our Story</a></li>
+            <li><a href="services.html">Services</a></li>
+        </ul>
+        <a href="quote.html" class="btn-primary desktop-only">Get a Quote</a>
+        <button class="mobile-menu-toggle" id="menuToggle">☰</button>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="quote-header">
+        <span class="eyebrow">Transparent Pricing</span>
+        <h1>Your Instant Quote</h1>
+        <p>No surprises, no hidden fees. Customize your service below and see your price update in real time.</p>
+    </section>
+
+    <!-- Main Quote Area -->
+    <main class="quote-main container">
+
+        <div style="background-color: #fdfcfa; padding: 24px; border-radius: 8px; margin-bottom: 28px; border-left: 4px solid var(--accent-primary); border: 1px solid #efeae0; grid-column: 1 / -1;">
+            <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); font-family: 'Playfair Display', serif;">The Community Hero Discount</h2>
+            <p style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem; margin: 0;">
+                At Aligned Spaces, we are more than just a cleaning service; we are a support system. To our Seniors and Military—you laid the foundation of this country and helped make it the powerhouse it is today. To our First Responders, Healthcare Workers, and Teachers—your daily dedication to caring for others is indisputable. You spend your lives thinking of everyone else; now, let Aligned Spaces take care of you. Enjoy a <strong>10% discount</strong> on all one-time services.
+            </p>
+        </div>
+
+        <!-- LEFT: Step-by-Step Configurator -->
+        <div class="quote-configurator">
+
+            <!-- Progress Bar -->
+            <div class="progress-bar-wrap">
+                <div class="progress-step active" data-step="1">
+                    <div class="ps-dot">1</div>
+                    <span>Service</span>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step" data-step="2">
+                    <div class="ps-dot">2</div>
+                    <span>Home</span>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step" data-step="3">
+                    <div class="ps-dot">3</div>
+                    <span>Frequency</span>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step" data-step="4">
+                    <div class="ps-dot">4</div>
+                    <span>Add-Ons</span>
+                </div>
+            </div>
+
+            <!-- STEP 1: Choose Service -->
+            <div class="step-panel active" id="step-1">
+                <h2 class="step-title">What service do you need?</h2>
+                <p class="step-subtitle">Select the one that best fits your situation.</p>
+
+                <div class="service-selector">
+                    <div class="service-option" data-service="signature" id="opt-signature">
+                        <div class="so-icon">✨</div>
+                        <div class="so-text">
+                            <strong>The Signature Clean</strong>
+                            <span>Deep & Recurring Maintenance</span>
+                        </div>
+                        <div class="so-check">✓</div>
+                    </div>
+                    <div class="service-option" data-service="transition" id="opt-transition">
+                        <div class="so-icon">🏡</div>
+                        <div class="so-text">
+                            <strong>The Transition Reset</strong>
+                            <span>Move-In / Move-Out</span>
+                        </div>
+                        <div class="so-check">✓</div>
+                    </div>
+                    <div class="service-option" data-service="turnover" id="opt-turnover">
+                        <div class="so-icon">⭐</div>
+                        <div class="so-text">
+                            <strong>The 5-Star Turnover</strong>
+                            <span>Airbnb / Short-Term Rental</span>
+                        </div>
+                        <div class="so-check">✓</div>
+                    </div>
+                    <div class="service-option" data-service="postconstruction" id="opt-postconstruction">
+                        <div class="so-icon">🔨</div>
+                        <div class="so-text">
+                            <strong>The Final Reveal</strong>
+                            <span>Post-Construction Clean</span>
+                        </div>
+                        <div class="so-check">✓</div>
+                    </div>
+                    <div class="service-option" data-service="tailored" id="opt-tailored">
+                        <div class="so-icon">🎯</div>
+                        <div class="so-text">
+                            <strong>The Tailored Focus</strong>
+                            <span>Personalized Hourly · $60/hr</span>
+                        </div>
+                        <div class="so-check">✓</div>
+                    </div>
+                    <div class="trust-badge-cell" style="display: flex; align-items: center; justify-content: center; padding: 1rem; background: #ffffff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); color: var(--text-primary); text-align: left; cursor: default;">
+                        <div>
+                            <strong style="display: block; font-size: 0.85rem; font-family: var(--font-heading); letter-spacing: 0.5px;">LICENSED & REGISTERED</strong>
+                            <span style="font-size: 0.75rem; opacity: 0.8;">Nevada State Licensed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-next" id="btn-next-1" onclick="goToStep(2)" disabled>Continue →</button>
+            </div>
+
+            <!-- STEP 2: Configure Home -->
+            <div class="step-panel" id="step-2">
+                <h2 class="step-title">Tell us about your home</h2>
+                <p class="step-subtitle" id="step2-subtitle">Select your home configuration.</p>
+
+                <!-- Square Footage Configuration -->
+                <div id="config-sqft" style="display:none;">
+                    <div class="config-group">
+                        <label class="config-label">Approximate Square Footage</label>
+                        <input type="number" id="sqft-input" class="sqft-input" placeholder="e.g. 1500" value="" min="100" max="10000" style="width: 100%; padding: 16px; font-size: 1.1rem; border: 2px solid var(--sand); border-radius: 8px; background-color: #fff; color: var(--text-primary); font-family: inherit; margin-top: 8px;">
+                    </div>
+                </div>
+
+                <!-- Rooms (for Standard Services) -->
+                <div id="config-rooms" style="display:none;">
+                    <div class="config-group" style="margin-bottom: 2rem;">
+                        <label class="config-label">Number of Bedrooms</label>
+                        <div class="counter-row">
+                            <button class="counter-btn" onclick="changeCount('bedrooms', -1)" id="btn-bedrooms-minus" disabled>−</button>
+                            <span class="counter-val" id="val-bedrooms">1</span>
+                            <button class="counter-btn" onclick="changeCount('bedrooms', 1)" id="btn-bedrooms-plus">+</button>
+                        </div>
+                    </div>
+                    <div class="config-group" style="margin-bottom: 2rem;">
+                        <label class="config-label">Number of Bathrooms</label>
+                        <div class="counter-row">
+                            <button class="counter-btn" onclick="changeCount('bathrooms', -1)" id="btn-bathrooms-minus" disabled>−</button>
+                            <span class="counter-val" id="val-bathrooms">1</span>
+                            <button class="counter-btn" onclick="changeCount('bathrooms', 1)" id="btn-bathrooms-plus">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hours (for Tailored) -->
+                <div id="config-hours" style="display:none;">
+                    <!-- Number of Maids -->
+                    <div class="config-group" style="margin-bottom: 2rem;">
+                        <label class="config-label">Number of Cleaners</label>
+                        <div class="counter-row">
+                            <button class="counter-btn" onclick="changeCount('cleaners', -1)"
+                                id="btn-cleaners-minus">−</button>
+                            <span class="counter-val" id="val-cleaners">1</span>
+                            <button class="counter-btn" onclick="changeCount('cleaners', 1)"
+                                id="btn-cleaners-plus">+</button>
+                        </div>
+                    </div>
+                    <!-- Number of Hours -->
+                    <div class="config-group">
+                        <label class="config-label">Hours per Cleaner <small>(minimum 3 hours)</small></label>
+                        <div class="counter-row">
+                            <button class="counter-btn" onclick="changeCount('hours', -1)"
+                                id="btn-hours-minus">−</button>
+                            <span class="counter-val" id="val-hours">3</span>
+                            <button class="counter-btn" onclick="changeCount('hours', 1)" id="btn-hours-plus">+</button>
+                        </div>
+                        <p class="counter-note" id="hourly-note">$60 per hour, per cleaner · 3-hour minimum</p>
+                    </div>
+                </div>
+
+                <div class="step-nav">
+                    <button class="btn-back" onclick="goToStep(1)">← Back</button>
+                    <button class="btn-next" onclick="goToStep(3)">Continue →</button>
+                </div>
+            </div>
+
+            <!-- STEP 3: Frequency -->
+            <div class="step-panel" id="step-3">
+                <h2 class="step-title">How often would you like service?</h2>
+                <p class="step-subtitle" id="step3-subtitle">Recurring clients receive preferred rates.</p>
+
+                <div class="frequency-selector" id="frequency-options">
+                    <div class="freq-option" data-freq="onetime" data-discount="0" onclick="selectFreq(this)">
+                        <strong>One-Time</strong>
+                        <span>No commitment</span>
+                        <div class="freq-badge">Standard Rate</div>
+                    </div>
+                    <div class="freq-option" data-freq="monthly" data-discount="5" onclick="selectFreq(this)">
+                        <strong>Monthly</strong>
+                        <span>1× per month</span>
+                        <div class="freq-badge discount">Save 5%</div>
+                    </div>
+                    <div class="freq-option" data-freq="biweekly" data-discount="10" onclick="selectFreq(this)">
+                        <strong>Bi-Weekly</strong>
+                        <span>2× per month</span>
+                        <div class="freq-badge discount">Save 10%</div>
+                    </div>
+                    <div class="freq-option" data-freq="weekly" data-discount="20" onclick="selectFreq(this)">
+                        <strong>Weekly</strong>
+                        <span>4× per month</span>
+                        <div class="freq-badge discount">Save 20%</div>
+                    </div>
+                </div>
+                
+                <div style="font-size: 0.8rem; color: var(--soft-gray); margin-top: 20px; font-style: italic; text-align: center; max-width: 400px; margin-left: auto; margin-right: auto; line-height: 1.4;">
+                    *Recurring discounts require a minimum commitment of 2 cleanings. If service is cancelled after the first cleaning, the discount will be retroactively billed.
+                </div>
+                <div id="freq-na-notice" style="display:none;" class="freq-notice">
+                    <p>This service is offered as a single visit. We'll proceed to optional add-ons.</p>
+                </div>
+
+                <!-- Community Hero Discount -->
+                <div id="hero-discount-container" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(0,0,0,0.05);">
+                    <label class="addon-card" style="margin-bottom:0; cursor:pointer;">
+                        <input type="checkbox" id="chkHeroPublic" onchange="updatePrice()">
+                        <div class="addon-icon">🎖️</div>
+                        <div class="addon-info">
+                            <strong>Community Hero Discount</strong>
+                            <span style="font-size: 0.8rem; line-height: 1.3;">Over 60, Military, Police, Teachers, Doctors, Nurses, Firefighters & Professors</span>
+                            <span style="color:var(--accent-primary); font-weight:600;">10% Off</span>
+                        </div>
+                    </label>
+                    <p style="margin-top: 12px; font-size: 0.85rem; color: rgba(0,0,0,0.6); padding-left: 12px; border-left: 2px solid var(--accent-primary);">
+                        <em>Simply show your ID to our team upon our first arrival to validate this discount.</em>
+                    </p>
+                </div>
+
+                <div class="step-nav">
+                    <button class="btn-back" onclick="goToStep(2)">← Back</button>
+                    <button class="btn-next" id="btn-next-3" onclick="goToStep(4)">Continue →</button>
+                </div>
+            </div>
+
+            <!-- STEP 4: Add-Ons -->
+            <div class="step-panel" id="step-4">
+                <h2 class="step-title">Any extras? <span style="font-style:italic; font-weight:300;">(optional)</span>
+                </h2>
+                <p class="step-subtitle">Customize your service with targeted add-ons.</p>
+
+                <!-- Dynamic Recommendation Notice -->
+                <div id="addon-recommendation" class="addon-notice" style="display: none;">
+                    ✨ <strong>Highly Recommended:</strong> Most clients add Inside Fridge & Oven for a truly fresh
+                    start.
+                </div>
+
+                <!-- Tailored Focus Notice -->
+                <div id="tailored-addon-notice" class="addon-notice" style="display: none; background: #ffffff; border-left: 4px solid var(--accent-primary); box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                    ✨ <strong>No Add-ons Needed:</strong> With our Tailored Focus service, you are purchasing dedicated time. You direct the priorities upon our arrival. Want us to spend 2 hours deep-cleaning your oven and fridge? Need help organizing a messy garage? You got it. We will tackle whatever you prioritize until the clock runs out—no extra fees for specific tasks.
+                </div>
+
+                <div class="addon-grid" id="main-addon-grid">
+                    <!-- Fridge with Quantity -->
+                    <div class="addon-card" id="addon-card-fridge">
+                        <div class="addon-icon">❄️</div>
+                        <div class="addon-info">
+                            <strong>Inside Fridge</strong>
+                            <span>$50 per unit</span>
+                        </div>
+                        <div class="addon-counter">
+                            <button type="button" class="addon-btn" onclick="changeAddonQty('fridge', -1)">−</button>
+                            <span class="addon-qty" id="qty-fridge">0</span>
+                            <button type="button" class="addon-btn" onclick="changeAddonQty('fridge', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Oven with Quantity -->
+                    <div class="addon-card" id="addon-card-oven">
+                        <div class="addon-icon">🔥</div>
+                        <div class="addon-info">
+                            <strong>Inside Oven</strong>
+                            <span>$50 per unit</span>
+                        </div>
+                        <div class="addon-counter">
+                            <button type="button" class="addon-btn" onclick="changeAddonQty('oven', -1)">−</button>
+                            <span class="addon-qty" id="qty-oven">0</span>
+                            <button type="button" class="addon-btn" onclick="changeAddonQty('oven', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Rest are checkboxes -->
+                    <label class="addon-card">
+                        <input type="checkbox" class="addon-checkbox" data-price="40" data-label="Inside Cabinets"
+                            data-id="cabinets" onchange="updatePrice()">
+                        <div class="addon-icon">🗄️</div>
+                        <div class="addon-info">
+                            <strong>Inside Cabinets</strong>
+                            <span style="font-size: 0.65rem; opacity: 0.7;">Must be empty</span>
+                            <span>+$40</span>
+                        </div>
+                    </label>
+                    
+                    <label class="addon-card">
+                        <input type="checkbox" class="addon-checkbox" data-price="25" data-label="Dish Washing"
+                            data-id="dishes" onchange="updatePrice()">
+                        <div class="addon-icon">🍽️</div>
+                        <div class="addon-info">
+                            <strong>Dish Washing</strong>
+                            <span>+$25</span>
+                        </div>
+                    </label>
+                    
+                    <!-- Organization with Quantity -->
+                    <div class="addon-card" id="addon-card-org">
+                        <div class="addon-icon">📦</div>
+                        <div class="addon-info">
+                            <strong>Organization</strong>
+                            <span style="font-size: 0.65rem; opacity: 0.7;">1 Organizer · Up to 5 hours</span>
+                            <span>$45/hr</span>
+                        </div>
+                        <div class="addon-counter">
+                            <button type="button" class="addon-btn" onclick="changeAddonQty('org', -1)">−</button>
+                            <span class="addon-qty" id="qty-org">0</span>
+                            <button type="button" class="addon-btn" onclick="changeAddonQty('org', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Interior Windows with Quantity -->
+                    <div class="addon-card" id="addon-card-windows">
+                        <div class="addon-icon">🪟</div>
+                        <div class="addon-info">
+                            <strong>Interior Windows</strong>
+                            <span style="font-size: 0.65rem; opacity: 0.7;">*Standard windows only</span>
+                            <span>$15</span>
+                        </div>
+                        <div class="addon-counter">
+                            <button type="button" class="addon-btn" onclick="changeAddonQty('windows', -1)">−</button>
+                            <span class="addon-qty" id="qty-windows">0</span>
+                            <button type="button" class="addon-btn" onclick="changeAddonQty('windows', 1)">+</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Pet Fee with Quantity -->
+                    <div class="addon-card" id="addon-card-pet">
+                        <div class="addon-icon">🐾</div>
+                        <div class="addon-info">
+                            <strong>Pet Hair Fee</strong>
+                            <span style="font-size: 0.65rem; opacity: 0.7;">Removing pet hair</span>
+                            <span>$25/pet</span>
+                        </div>
+                        <div class="addon-counter">
+                            <button type="button" class="addon-btn" onclick="changeAddonQty('pet', -1)">−</button>
+                            <span class="addon-qty" id="qty-pet">0</span>
+                            <button type="button" class="addon-btn" onclick="changeAddonQty('pet', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <label class="addon-card">
+                        <input type="checkbox" class="addon-checkbox" id="chk-garage" data-price="70" data-label="Garage Sweep & Mop"
+                            data-id="garage" onchange="updatePrice()">
+                        <div class="addon-icon">🚗</div>
+                        <div class="addon-info">
+                            <strong>Garage Sweep & Mop</strong>
+                            <span id="price-garage">+$70</span>
+                        </div>
+                    </label>
+                    <label class="addon-card">
+                        <input type="checkbox" class="addon-checkbox" data-price="30" data-label="Balcony Sweeping"
+                            data-id="balcony" onchange="updatePrice()">
+                        <div class="addon-icon">☀️</div>
+                        <div class="addon-info">
+                            <strong>Balcony Sweeping</strong>
+                            <span>+$30</span>
+                        </div>
+                    </label>
+
+                    <label class="addon-card">
+                        <input type="checkbox" class="addon-checkbox" id="chk-patio" data-price="70" data-label="Patio Sweeping"
+                            data-id="patio" onchange="updatePrice()">
+                        <div class="addon-icon">🧹</div>
+                        <div class="addon-info">
+                            <strong>Patio Sweeping</strong>
+                            <span id="price-patio">+$70</span>
+                        </div>
+                    </label>
+
+                    <label class="addon-card">
+                        <input type="checkbox" class="addon-checkbox" data-price="60" data-label="BBQ Grill Cleaning"
+                            data-id="grill" onchange="updatePrice()">
+                        <div class="addon-icon">🥩</div>
+                        <div class="addon-info">
+                            <strong>BBQ Grill Cleaning</strong>
+                            <span>+$60</span>
+                        </div>
+                    </label>
+
+                    <label class="addon-card">
+                        <input type="checkbox" class="addon-checkbox" data-price="50" data-label="Emergency / Same-Day"
+                            data-id="emergency" onchange="updatePrice()">
+                        <div class="addon-icon">🚨</div>
+                        <div class="addon-info">
+                            <strong>Emergency / Same-Day</strong>
+                            <span style="font-size: 0.65rem; opacity: 0.7; display: block; margin-top: 4px; line-height: 1.3;">Calendar blocks 48hrs. Select nearest date & specify your required date in the notes.</span>
+                            <span>+$50</span>
+                        </div>
+                    </label>
+
+                </div>
+
+                <div class="step-nav">
+                    <button class="btn-back" onclick="goToStep(3)">← Back</button>
+                    <button class="btn-next btn-book" onclick="showBookingForm()">See My Quote & Book →</button>
+                </div>
+            </div>
+
+            <!-- STEP 5: Booking Form (Final) -->
+            <div class="step-panel" id="step-5">
+                <h2 class="step-title">Almost there.</h2>
+                <p class="step-subtitle">Leave your details and we'll confirm your booking within 24 hours.</p>
+
+                <div class="quote-summary-inline" id="quote-summary-inline"></div>
+
+                <form class="booking-form" id="booking-form" onsubmit="submitBooking(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="b-name">Full Name *</label>
+                            <input type="text" id="b-name" placeholder="Your name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="b-email">Email Address *</label>
+                            <input type="email" id="b-email" placeholder="your@email.com" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="b-phone">Phone Number</label>
+                            <input type="tel" id="b-phone" placeholder="(555) 000-0000">
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Schedule Your Clean *</label>
+                            <div class="schedule-container">
+                                <div class="date-picker-wrap">
+                                    <input type="text" id="b-date" placeholder="Select Date" readonly required>
+                                </div>
+                                <div class="time-slots-wrap">
+                                    <div class="time-slot" data-time="Morning Preference" onclick="selectTimeSlot(this)">
+                                        <strong>Morning</strong>
+                                        <span>Preferred Arrival</span>
+                                    </div>
+                                    <div class="time-slot" data-time="Afternoon Preference" onclick="selectTimeSlot(this)">
+                                        <strong>Afternoon</strong>
+                                        <span>Preferred Arrival</span>
+                                    </div>
+                                    <div class="time-slot" data-time="Flexible" onclick="selectTimeSlot(this)">
+                                        <strong>Flexible</strong>
+                                        <span>Anytime Works</span>
+                                    </div>
+                                </div>
+                                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 12px; font-style: italic; line-height: 1.4;">
+                                    * Because every home requires unique attention, we do not lock in exact arrival times. This is your preference. We will contact you shortly after booking to confirm your exact arrival window.
+                                </p>
+                            </div>
+                            <input type="hidden" id="selected-time" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="b-address">Home Address</label>
+                        <input type="text" id="b-address" placeholder="Street address, City, State">
+                    </div>
+                    <div class="form-group">
+                        <label for="b-notes">Additional Notes</label>
+                        <textarea id="b-notes" rows="3"
+                            placeholder="Pets, access instructions, specific areas of concern..."></textarea>
+                    </div>
+
+                    <!-- Payment & Terms -->
+                    <div class="payment-section" style="background: #fdfdfd; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem; margin-bottom: 2rem;">
+                        <h3 style="margin-top: 0; display: flex; align-items: center; gap: 8px; font-size: 1.1rem; color: #1e293b;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                            Secure Payment 
+                            <span style="font-size: 0.8rem; color: #64748b; font-weight: normal; margin-left: auto;">Powered by <strong>Stripe</strong></span>
+                        </h3>
+                        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">Your card is securely held to reserve your appointment. You will only be charged <strong>after</strong> your service is completed.</p>
+                        
+                        <!-- Real Stripe Element -->
+                        <div style="background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-bottom: 0.5rem;">
+                            <div id="card-element"></div>
+                        </div>
+                        <div id="card-errors" role="alert" style="color: red; font-size: 0.85rem; margin-bottom: 1.5rem;"></div>
+
+                        <label style="display: flex; gap: 10px; align-items: flex-start; cursor: pointer;">
+                            <input type="checkbox" id="b-terms" required style="margin-top: 4px;">
+                            <span style="font-size: 0.85rem; color: #475569; line-height: 1.4;">
+                                I agree to the Terms of Service. I understand that my card will not be charged today, but an $80 cancellation fee applies if I cancel within 24 hours of my appointment. Final price is subject to change based on on-site verification.
+                            </span>
+                        </label>
+                    </div>
+
+                    <input type="hidden" id="b-quote-data" name="quote_data">
+                    <button type="submit" class="btn-primary btn-submit">Reserve Appointment ✓</button>
+                </form>
+
+                <div class="step-nav">
+                    <button class="btn-back" onclick="goToStep(4)">← Adjust My Quote</button>
+                </div>
+            </div>
+
+            <!-- STEP 6: Confirmation -->
+            <div class="step-panel" id="step-confirm">
+                <div class="confirmation-box">
+                    <div class="confirm-icon">✓</div>
+                    <h2>Request Received!</h2>
+                    <p>Thank you. We've received your quote request and will contact you within <strong>24
+                            hours</strong> to confirm your appointment.</p>
+                    <p class="confirm-sub">Check your email for a summary of your request.</p>
+                    <a href="index.html" class="btn-primary" style="margin-top:2rem; display:inline-block;">Back to
+                        Home</a>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT: Live Price Panel -->
+        <aside class="quote-sidebar">
+            <div class="price-panel">
+                <span class="eyebrow" style="text-align:left; margin-bottom:1.5rem; display:block;">Your Estimate</span>
+
+                <div class="price-display">
+                    <span class="price-label">Total</span>
+                    <div class="price-amount" id="price-display">$—</div>
+                </div>
+
+                <div class="price-breakdown" id="price-breakdown">
+                    <p class="breakdown-placeholder">Select a service to see your price.</p>
+                </div>
+
+                <div class="price-divider"></div>
+
+                <div class="price-guarantee">
+                    <div class="guarantee-item">
+                        <span class="g-icon">🔒</span>
+                        <span>Flat-rate pricing — no surprises</span>
+                    </div>
+                    <div class="guarantee-item">
+                        <span class="g-icon">✓</span>
+                        <span>Same price for every client</span>
+                    </div>
+                    <div class="guarantee-item">
+                        <span class="g-icon">💬</span>
+                        <span>Free consultation before booking</span>
+                    </div>
+                </div>
+
+                <div class="price-note" id="price-note" style="display:none;">
+                    * Post-construction pricing may vary based on the level of debris and renovation scope. Final price
+                    confirmed after a brief phone consultation.
+                </div>
+            </div>
+        </aside>
+
+    </main>
+
+    <footer class="footer" style="padding-top: 3rem;">
+        <div class="container" style="text-align: center;">
+            <p style="color: var(--bg-primary); opacity: 0.6;">© 2026 ALIGNED SPACES. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="quote-new.js"></script>
+</body>
+
+</html>
