@@ -1338,7 +1338,7 @@
               btnEl.textContent = "Charging...";
               
               try {
-                  const res = await fetch('/capture-payment', {
+                  const res = await fetch('/api/capture-payment', {
                       method: 'POST',
                       headers: {'Content-Type': 'application/json'},
                       body: JSON.stringify({ paymentIntentId: intentId })
@@ -1367,7 +1367,7 @@
               btnEl.textContent = "Cancelling...";
               
               try {
-                  const res = await fetch('/cancel-payment', {
+                  const res = await fetch('/api/cancel-payment', {
                       method: 'POST',
                       headers: {'Content-Type': 'application/json'},
                       body: JSON.stringify({ paymentIntentId: intentId })

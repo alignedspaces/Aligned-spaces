@@ -148,6 +148,7 @@ let state = {
     addonQuantities: { fridge: 0, oven: 0, windows: 0, org: 0, pet: 0 },
     basePrice:  0,
     totalPrice: 0,
+    promoCodeApplied: false,
     // Booking
     selectedDate: null,
     selectedTime: null
@@ -502,6 +503,26 @@ function setupStep4() {
 // PRICE CALCULATION ENGINE
 // ============================================================
 
+function applyPromoCode() {
+    const input = document.getElementById('promo-code-input');
+    const msg = document.getElementById('promo-code-message');
+    const code = input.value.trim().toUpperCase();
+    
+    if (code === 'NARANJO1395') {
+        state.promoCodeApplied = true;
+        msg.textContent = 'Promo code applied! 95% off.';
+        msg.style.color = 'var(--accent-primary)';
+        msg.style.display = 'block';
+        updatePrice();
+    } else {
+        state.promoCodeApplied = false;
+        msg.textContent = 'Invalid promo code.';
+        msg.style.color = '#dc2626';
+        msg.style.display = 'block';
+        updatePrice();
+    }
+}
+
 function updatePrice() {
     const service = state.service;
     if (!service) return;
@@ -587,10 +608,16 @@ function updatePrice() {
 
     state.totalPrice = afterFreq + addonsTotal;
 
-    renderPrice(base, maxDiscLabel, discountAmt, addonsTotal, state.totalPrice);
+    let promoDiscountAmt = 0;
+    if (state.promoCodeApplied) {
+        promoDiscountAmt = Math.round(state.totalPrice * 0.95);
+        state.totalPrice -= promoDiscountAmt;
+    }
+
+    renderPrice(base, maxDiscLabel, discountAmt, addonsTotal, state.totalPrice, promoDiscountAmt);
 }
 
-function renderPrice(base, maxDiscLabel, discountAmt, addonsTotal, total) {
+function renderPrice(base, maxDiscLabel, discountAmt, addonsTotal, total, promoDiscountAmt = 0) {
     const display    = document.getElementById('price-display');
     const breakdown  = document.getElementById('price-breakdown');
     const note       = document.getElementById('price-note');
@@ -656,6 +683,13 @@ function renderPrice(base, maxDiscLabel, discountAmt, addonsTotal, total) {
                 <span>+$${addon.price.toLocaleString()}</span>
             </div>`;
         });
+    }
+
+    if (promoDiscountAmt > 0) {
+        html += `<div class="breakdown-item discount" style="color: var(--accent-primary); font-weight: 600;">
+            <span>Promo Code (95% Off)</span>
+            <span>−$${promoDiscountAmt.toLocaleString()}</span>
+        </div>`;
     }
 
     html += `<div class="breakdown-item" style="border-top:1px solid rgba(253,251,247,0.2); margin-top:.5rem; padding-top:.5rem;">
@@ -812,7 +846,7 @@ async function submitBooking(e) {
         }
 
         // 2. Fetch the client secret from our backend ONLY when they click submit
-        const response = await fetch('/create-payment-intent', {
+        const response = await fetch('/api/create-payment-intent', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -860,7 +894,7 @@ async function submitBooking(e) {
             const bookingData = { name, email, phone, addr, notes, date: state.selectedDate, time: state.selectedTime, quoteData: quote, total: quote.total, paymentStatus: result.paymentIntent.status, paymentIntentId: result.paymentIntent.id };
             if (window.saveBookingToCRM) window.saveBookingToCRM(bookingData);
 
-            await fetch('/send-booking', {
+            await fetch('/api/send-booking', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
