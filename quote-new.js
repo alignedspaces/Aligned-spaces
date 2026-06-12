@@ -510,7 +510,7 @@ function applyPromoCode() {
     
     if (code === 'NARANJO1395') {
         state.promoCodeApplied = true;
-        msg.textContent = 'Promo code applied! 95% off.';
+        msg.textContent = 'Promo code applied! 99% off.';
         msg.style.color = 'var(--accent-primary)';
         msg.style.display = 'block';
         updatePrice();
@@ -610,7 +610,7 @@ function updatePrice() {
 
     let promoDiscountAmt = 0;
     if (state.promoCodeApplied) {
-        promoDiscountAmt = Math.round(state.totalPrice * 0.95);
+        promoDiscountAmt = Math.round(state.totalPrice * 0.99);
         state.totalPrice -= promoDiscountAmt;
     }
 
@@ -846,11 +846,14 @@ async function submitBooking(e) {
         }
 
         // 2. Fetch the client secret from our backend ONLY when they click submit
+        let depositAmountCents = Math.round((quote.total * 0.20) * 100);
+        if (depositAmountCents < 50) depositAmountCents = 50; // Stripe minimum is $0.50
+
         const response = await fetch('/api/create-payment-intent', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                amount: Math.round((quote.total * 0.20) * 100),
+                amount: depositAmountCents,
                 service: quote.service,
                 name: name,
                 email: email
