@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff App - Aligned Spaces</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #F8F3ED; margin: 0; color: #2C2B29; padding: 20px;}
+    .container { max-width: 500px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+    h1 { font-family: 'Playfair Display', serif; color: #4A3C39; text-align: center; }
+    .input-group { margin-bottom: 20px; }
+    .input-group label { display: block; font-size: 14px; margin-bottom: 8px; font-weight: 600; color: #5A5957;}
+    .input-group select, .input-group input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px;}
+    .btn { width: 100%; background: #2C2B29; color: #FDFBF7; border: none; padding: 14px; border-radius: 6px; font-weight: 600; font-size: 16px; cursor: pointer; }
+    .btn:hover { background: #1a1a18; }
+    .job-card { border: 1px solid #D5BBAE; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #fff;}
+    .job-header { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px;}
+    .btn-small { padding: 8px 12px; border-radius: 4px; font-size: 13px; border: none; cursor: pointer; font-weight: 600;}
+    .btn-green { background: #5cb85c; color: white;}
+    .btn-red { background: #d9534f; color: white;}
+    .btn-blue { background: #0275d8; color: white;}
+    .tab-bar { display: flex; background: transparent; margin-bottom: 20px;}
+    .tab { flex: 1; text-align: center; padding: 15px; cursor: pointer; font-weight: 600; color: #8C8173; font-size: 14px;}
+    .tab.active { color: #4A3C39; border-bottom: 3px solid #C27A65; }
+    .service-btn { display: block; width: 100%; text-align: left; background: #fff; border: 1px solid #D9D2C5; padding: 15px; border-radius: 8px; margin-bottom: 10px; font-weight: 600; cursor: pointer; color: #4A3C39; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
+    .service-btn:hover { border-color: #C27A65;}
+    .guide-content { background: #fff; padding: 15px; border: 1px solid #D9D2C5; border-radius: 8px; margin-bottom: 20px; display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="container" id="loginScreen">
+    <h1>Staff Login</h1>
+    <div class="input-group">
+      <label>Select Your Name</label>
+      <select id="staffNameSelect">
+        <option value="">Loading staff...</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label>4-Digit PIN</label>
+      <input type="password" id="staffPin" maxlength="4" placeholder="Enter PIN">
+    </div>
+    <button class="btn" id="btnLogin">Log In</button>
+  </div>
+
+  <div class="container" id="appScreen" style="display:none; padding: 0; background: transparent; box-shadow: none;">
+    <div style="background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+      <div style="text-align:center;">
+        <h1 id="welcomeHeader" style="margin-bottom: 5px; color:#4A3C39; margin-top:0;">Welcome</h1>
+        <p id="quoteHeader" style="font-style: italic; color:#8C8173; font-size: 14px; margin-top:0;"></p>
+        <button onclick="logout()" style="background:none; border:none; color:#d9534f; cursor:pointer; font-weight:600; font-size:14px; margin-top: 10px;">Log Out</button>
+      </div>
+    </div>
+    
+    <div class="tab-bar">
+      <div class="tab active" id="tabJobs" onclick="switchTab('jobs')">Schedule</div>
+      <div class="tab" id="tabTimesheet" onclick="switchTab('timesheet')">Timesheet</div>
+      <div class="tab" id="tabGuides" onclick="switchTab('guides')">Guides</div>
+    </div>
+    
+    <div id="jobsView">
+      <div id="jobsList">
+        <p style="text-align:center;">Loading your schedule...</p>
+      </div>
+    </div>
+    
+    <div id="timesheetView" style="display:none; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+      <h2 style="font-family:'Playfair Display', serif; color:#2C2B29; margin-top:0;">Past Jobs & Hours</h2>
+      <p style="font-size: 14px; color: #5A5957; margin-bottom: 20px;">Review your completed jobs and clocked hours.</p>
+      <div id="timesheetList">
+        <p style="text-align:center;">Loading timesheet...</p>
+      </div>
+    </div>
+    
+    <!-- Hidden input for camera/gallery photo uploads -->
+    <input type="file" id="photoInput" accept="image/*" multiple style="display:none;" onchange="handlePhotoUpload(event)">
+    
+    <div id="guidesView" style="display:none; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+      <h2 style="font-family:'Playfair Display', serif; color:#2C2B29; margin-top:0;">Knowledge Base</h2>
+      <p style="font-size: 14px; color: #5A5957; margin-bottom: 20px;">Tap on a service below to view the official checklist and standard operating procedure.</p>
+      
+      <div id="guidesList"></div>
+    </div>
+  </div>
+
+  <!-- Firebase Compat Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <script>
+    let staffList = [];
+    let currentStaff = localStorage.getItem('alignedStaffName');
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Load Staff for dropdown
+      const snap = await window.db.collection('staff').get();
+      const select = document.getElementById('staffNameSelect');
+      select.innerHTML = '<option value="">-- Select Name --</option>';
+      snap.forEach(doc => {
+         const data = doc.data();
+         if(data.status === 'Active') {
+             staffList.push(data);
+             select.innerHTML += `<option value="${data.name}">${data.name}</option>`;
+         }
+      });
+
+      if(currentStaff) {
+          showApp();
+      }
+    });
+
+    document.getElementById('btnLogin').addEventListener('click', () => {
+       const name = document.getElementById('staffNameSelect').value;
+       const pin = document.getElementById('staffPin').value;
+       const staffData = staffList.find(s => s.name === name);
+       
+       if(!name) return alert('Select your name');
+       if(!staffData || staffData.pin !== pin) {
+           return alert('Incorrect PIN');
+       }
+       
+       currentStaff = name;
+       localStorage.setItem('alignedStaffName', name);
+       showApp();
+    });
+
+    function logout() {
+       localStorage.removeItem('alignedStaffName');
+       currentStaff = null;
+       document.getElementById('loginScreen').style.display = 'block';
+       document.getElementById('appScreen').style.display = 'none';
+       document.getElementById('staffPin').value = '';
+    }
+
+    const quotes = [
+        "\"All labor that uplifts humanity has dignity and importance and should be undertaken with painstaking excellence.\" — Martin Luther King Jr.",
+        "\"Service to others is the rent you pay for your room here on earth.\" — Muhammad Ali",
+        "\"What we have done for ourselves alone dies with us; what we have done for others and the world remains and is immortal.\" — Albert Pike",
+        "\"No one is useless in this world who lightens the burdens of another.\" — Charles Dickens",
+        "\"Where there is order, there is peace. Bringing peace to a home is a priceless gift.\" — Proverb",
+        "\"The most productive work is that which comes from the hands of a glad person.\" — Victor Pauchet",
+        "\"I've learned that people will forget what you said, people will forget what you did, but people will never forget how you made them feel.\" — Maya Angelou",
+        "\"Nothing creates order and a sense of harmony like a clean, beautiful space.\" — Marie Kondo",
+        "\"There is no magic to achievement. It's really about hard work, choices, and persistence.\" — Michelle Obama",
+        "\"I dwell in possibility.\" — Emily Dickinson",
+        "\"Success is only meaningful and enjoyable if it feels like your own.\" — Michelle Obama",
+        "\"Do what you feel in your heart to be right, for you'll be criticized anyway.\" — Eleanor Roosevelt",
+        "\"A woman is the full circle. Within her is the power to create, nurture and transform.\" — Diane Mariechild",
+        "\"Spread love everywhere you go. Let no one ever come to you without leaving happier.\" — Mother Teresa"
+    ];
+
+    async function showApp() {
+       document.getElementById('loginScreen').style.display = 'none';
+       document.getElementById('appScreen').style.display = 'block';
+       
+       const firstName = currentStaff.split(' ')[0];
+       document.getElementById('welcomeHeader').innerText = `¡Bienvenido/a, ${firstName}!`;
+       
+       const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+       document.getElementById('quoteHeader').innerText = `"${randomQuote}"`;
+
+       loadJobs();
+    }
+
+    async function loadJobs() {
+       const list = document.getElementById('jobsList');
+       list.innerHTML = '<p style="text-align:center;">Loading...</p>';
+       try {
+           const snap = await window.db.collection('bookings')
+             .where('staff', '==', currentStaff)
+             .where('status', 'in', ['Confirmed', 'Completed'])
+             .get();
+             
+           list.innerHTML = '';
+           
+           if(snap.empty) {
+               list.innerHTML = '<p style="text-align:center; color:#8C8173;">No jobs assigned to you right now.</p>';
+               return;
+           }
+
+           // Sort by date locally
+           let jobs = [];
+           snap.forEach(doc => jobs.push({id: doc.id, ...doc.data()}));
+           jobs.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+           const today = new Date().toISOString().split('T')[0];
+           let jobsToday = [];
+           let jobsUpcoming = [];
+           let jobsPast = [];
+
+           jobs.forEach(job => {
+               const isClockedIn = !!job.clockIn && !job.clockOut;
+               const isCompleted = job.status === 'Completed';
+
+               if(isCompleted) {
+                   if(job.date === today || (job.clockOut && job.clockOut.includes(today))) {
+                       jobsToday.push(job);
+                   } else {
+                       jobsPast.push(job);
+                   }
+               } else {
+                   if(job.date < today) {
+                       jobsToday.push(job); // Overdue
+                   } else if(job.date === today) {
+                       jobsToday.push(job);
+                   } else {
+                       jobsUpcoming.push(job);
+                   }
+               }
+           });
+
+           function renderScheduleCard(job, buttonsHtml) {
+              return `
+                <div class="job-card">
+                  <div class="job-header">
+                    <strong style="color:#4A3C39;">${job.date} at ${job.time || 'TBD'}</strong>
+                    <span style="background:#F8F3ED; padding:2px 8px; border-radius:10px; font-size:12px; color:#C4A47C;">${job.serviceType || 'Clean'}</span>
+                  </div>
+                  <div style="margin-bottom:15px;">
+                    <button class="btn-small" style="width:100%; padding:10px; background:#EFEBE5; color:#4A3C39; border:1px solid #C4A47C; margin-bottom: 10px;" onclick="document.getElementById('details_${job.id}').style.display = document.getElementById('details_${job.id}').style.display === 'none' ? 'block' : 'none'">📋 View Full Job Details</button>
+                    
+                    <div id="details_${job.id}" style="display:none; background:#FDFBF7; border:1px solid #EFEBE5; border-radius:8px; padding:15px; margin-bottom:15px;">
+                        <p style="margin:0 0 10px 0; font-size:13px; color:#444;"><strong>Client Instructions:</strong><br>${job.notes || 'None'}</p>
+                        <p style="margin:0 0 10px 0; font-size:13px; color:#d9534f;"><strong>Manager Notes (Private):</strong><br>${job.privateNotes || 'None'}</p>
+                        
+                        ${(job.quoteData && job.quoteData.addOns && job.quoteData.addOns.length > 0) ? `
+                            <div style="padding-top:10px; border-top:1px dashed #D5BBAE;">
+                                <strong style="font-size:13px; color:#8C8173;">✨ Add-Ons:</strong><br>
+                                ${job.quoteData.addOns.map(a => `<span style="font-size:13px; color:#C27A65; display:inline-block; margin-right:8px; font-weight:600;">[+] ${a.id || a.name || a}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        <button style="margin-top:15px; width:100%; padding:10px; background:#2C2B29; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600;" onclick="jumpToChecklist('${job.serviceType || 'Signature Clean'}')">✅ View Required Checklist</button>
+                    </div>
+
+                    <p style="margin:5px 0;"><strong>Client:</strong> ${job.clientName || job.name || 'Unknown'}</p>
+                    <p style="margin:5px 0;"><strong>Address:</strong> <a href="https://maps.google.com/?q=${encodeURIComponent(job.addr || '')}" target="_blank" style="color:#0275d8;">${job.addr || 'View Map'}</a></p>
+                  </div>
+                  ${buttonsHtml}
+                </div>
+              `;
+           }
+
+           let todayHtml = '';
+           jobsToday.forEach(job => {
+               const isClockedIn = !!job.clockIn && !job.clockOut;
+               const isCompleted = job.status === 'Completed';
+               let buttonsHtml = '';
+               if(isCompleted) {
+                   buttonsHtml = `<div style="color:#5cb85c; font-weight:600; text-align:center; padding:10px;">✅ Job Completed</div>`;
+               } else if (!isClockedIn) {
+                   buttonsHtml = `<button class="btn-small btn-green" style="width:100%; padding:12px;" onclick="clockIn('${job.id}')">⏱️ Clock In</button>`;
+               } else {
+                   const photoCount = job.photos ? job.photos.length : 0;
+                   const photoText = photoCount > 0 ? `📸 Add More Photos (${photoCount})` : `📸 Add Before/After Photos`;
+                   buttonsHtml = `
+                     <div style="display:flex; gap:10px; margin-bottom:10px;">
+                       <button class="btn-small" style="flex:1; padding:12px; background:#fff; border:2px solid #C4A47C; color:#4A3C39; font-weight:600;" onclick="triggerPhotoUpload('${job.id}')">${photoText}</button>
+                     </div>
+                     <div style="display:flex; gap:10px;">
+                       <button class="btn-small btn-red" style="flex:1; padding:12px;" onclick="clockOut('${job.id}')">⏹️ Clock Out</button>
+                       <button class="btn-small btn-blue" style="flex:1; padding:12px;" onclick="markComplete('${job.id}')">✅ Mark Complete</button>
+                     </div>
+                     <p style="text-align:center; font-size:11px; margin-top:10px; color:#888;">Started at: ${new Date(job.clockIn).toLocaleTimeString()}</p>
+                   `;
+               }
+               todayHtml += renderScheduleCard(job, buttonsHtml);
+           });
+
+           let upcomingHtml = '';
+           jobsUpcoming.forEach(job => {
+               let buttonsHtml = `<button class="btn-small btn-green" style="width:100%; padding:12px; opacity:0.5;" disabled>⏱️ Not Started (Upcoming)</button>`;
+               upcomingHtml += renderScheduleCard(job, buttonsHtml);
+           });
+
+           let pastHtml = '';
+           jobsPast.sort((a,b) => new Date(b.date) - new Date(a.date));
+           jobsPast.forEach(job => {
+               let hoursWorked = 0;
+               if(job.clockIn && job.clockOut) {
+                   hoursWorked = (new Date(job.clockOut) - new Date(job.clockIn)) / (1000 * 60 * 60);
+               }
+               let hoursStr = hoursWorked.toFixed(2) + ' hrs';
+               let timeIn = job.clockIn ? new Date(job.clockIn).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
+               let timeOut = job.clockOut ? new Date(job.clockOut).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
+               
+               pastHtml += `
+                 <div class="job-card" style="background:#FDFBF7;">
+                   <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                     <strong style="color:#4A3C39;">${job.date}</strong>
+                     <span style="font-size:13px; color:#C27A65; font-weight:600;">${job.clientName || job.name || 'Unknown'}</span>
+                   </div>
+                   <div style="font-size:13px; color:#5A5957; display:flex; justify-content:space-between; margin-bottom: 10px; border-bottom: 1px dashed #D5BBAE; padding-bottom:10px;">
+                     <span>In: ${timeIn}</span>
+                     <span>Out: ${timeOut}</span>
+                   </div>
+                   <div style="text-align:right; font-weight:600; color:#4A3C39;">
+                     Total: ${hoursStr}
+                   </div>
+                 </div>
+               `;
+           });
+
+           let scheduleHtml = '';
+           if(jobsToday.length > 0) scheduleHtml += `<h3 style="font-family:'Playfair Display', serif; color:#2C2B29; margin-top:0;">📅 Today</h3>${todayHtml}`;
+           if(jobsUpcoming.length > 0) scheduleHtml += `<h3 style="font-family:'Playfair Display', serif; color:#2C2B29; margin-top:25px;">🗓️ Upcoming</h3>${upcomingHtml}`;
+           
+           if(scheduleHtml === '') scheduleHtml = '<p style="text-align:center; color:#8C8173;">No active jobs assigned to you right now.</p>';
+           list.innerHTML = scheduleHtml;
+
+           const tsList = document.getElementById('timesheetList');
+           if(pastHtml === '') tsList.innerHTML = '<p style="text-align:center; color:#8C8173;">No past completed jobs found.</p>';
+           else tsList.innerHTML = pastHtml;
+       } catch(e) {
+           console.error(e);
+           list.innerHTML = '<p style="color:red; text-align:center;">Error loading jobs.</p>';
+       }
+    }
+
+    window.clockIn = async function(id) {
+       if(confirm("Are you sure you want to Clock In now?")) {
+           await window.db.collection('bookings').doc(id).update({
+               clockIn: new Date().toISOString()
+           });
+           loadJobs();
+       }
+    }
+
+    window.clockOut = async function(id) {
+       if(confirm("Are you sure you want to Clock Out?")) {
+           await window.db.collection('bookings').doc(id).update({
+               clockOut: new Date().toISOString()
+           });
+           loadJobs();
+       }
+    }
+
+    window.markComplete = async function(id) {
+       if(confirm("Did you send the Before/After photos to management? Click OK to mark this job as Completed.")) {
+           await window.db.collection('bookings').doc(id).update({
+               status: 'Completed',
+               clockOut: new Date().toISOString() // Override clockout time to ensure pay is captured
+           });
+           loadJobs();
+       }
+    }
+
+    const checklists = {
+          "Signature Clean": {
+            "All Rooms": [
+              "Dusting and wiping top-to-bottom (ceiling fans, vents, blinds, baseboards)",
+              "Wiping down all accessible surfaces and furniture",
+              "Vacuuming carpets and mopping hard floors",
+              "Emptying all trash receptacles",
+              "Sanitizing high-touch points (doorknobs, light switches)",
+              "Sliding glass doors cleaned (inside & out)"
+            ],
+            "Kitchen": [
+              "Wiping exterior of all cabinets",
+              "Cleaning exterior and interior of microwave",
+              "Degreasing and scrubbing stovetop",
+              "Sanitizing countertops and backsplashes",
+              "Polishing the sink and fixtures",
+              "Wiping down the exterior of all appliances"
+            ],
+            "Bathrooms": [
+              "Deep scrubbing of showers, tubs, and tile grout",
+              "Thorough sanitizing of toilets (inside and out)",
+              "Polishing mirrors and glass doors",
+              "Cleaning and polishing sink fixtures",
+              "Folding towels hotel-style"
+            ]
+          },
+          "Transition Reset": {
+            "Deep Scrubbing & Detail": [
+              "Hand-washing all baseboards, window sills, and door frames",
+              "Cleaning inside all windows (where accessible safely)",
+              "Vacuuming inside all closets and shelving",
+              "Deep scrubbing of all bathroom tiles, grout, and fixtures",
+              "Cleaning light fixtures and ceiling fans"
+            ],
+            "Inside Cabinets & Appliances": [
+              "Vacuuming and wet-wiping the inside of all kitchen cabinets and drawers",
+              "Vacuuming and wet-wiping the inside of all bathroom vanities",
+              "Deep cleaning the inside of the oven (removing racks and degreasing)",
+              "Deep cleaning the inside of the refrigerator (wiping all shelves and bins)"
+            ]
+          },
+          "5-Star Turnover": {
+            "The Baseline Clean": [
+              "Thorough dusting of all surfaces and furniture",
+              "Vacuuming carpets and mopping hard floors",
+              "Emptying all trash receptacles",
+              "Sanitizing high-touch points (remotes, doorknobs, lockboxes)",
+              "Deep scrubbing of bathrooms (toilets, showers, sinks)",
+              "Cleaning kitchen surfaces, inside microwave, and stovetop",
+              "Sliding glass doors cleaned (inside & out)"
+            ],
+            "Staging & Reset": [
+              "Stripping used linens and towels",
+              "Washing and changing all bed linens",
+              "Making beds with professional hotel-style tucks",
+              "Folding fresh towels aesthetically",
+              "Resetting decorative pillows, throws, and furniture placement"
+            ],
+            "Inventory & Restocking": [
+              "Restocking toilet paper and paper towels",
+              "Refilling hand soaps, shampoo, and body wash dispensers",
+              "Restocking coffee, tea, and basic kitchen supplies",
+              "Emptying the dishwasher and putting away clean dishes"
+            ],
+            "Damage Check & Reporting": [
+              "Visual inspection for stains, damages, or missing items",
+              "Immediate notification to the host of any issues found",
+              "Checking that appliances and lights are turned off",
+              "Securing all windows and doors before departure"
+            ],
+            "Included Extras": [
+              "IN FRIDGE, IN OVEN, IN EMPTY CABINETS and balcony and patio set is included"
+            ]
+          },
+          "Post-Construction": {
+            "Dust Eradication": [
+              "Dry dusting walls and ceilings to remove fine drywall dust",
+              "Vacuuming inside and outside of all vents and duct covers",
+              "Wiping down all ceiling fans and light fixtures",
+              "Detailed dusting of all baseboards, door frames, and window sills",
+              "Thorough vacuuming of all carpets and hard floors (multiple passes)",
+              "Sliding glass doors cleaned (inside & out)"
+            ],
+            "Deep Cabinetry Cleaning": [
+              "Vacuuming and wet-wiping the inside of all new kitchen cabinets and drawers",
+              "Vacuuming and wet-wiping the inside of all new bathroom cabinets and vanities",
+              "Wiping down the exterior of all cabinetry to remove sawdust and fingerprints",
+              "Cleaning all newly installed closet shelving"
+            ],
+            "Surface Restoration & Polishing": [
+              "Removing small paint splatters, adhesive, or caulk residue",
+              "Polishing all new appliances",
+              "Deep scrubbing of newly installed tiles to remove grout haze",
+              "Polishing all mirrors, interior glass doors, and interior windows",
+              "Shining all new chrome, brass, and stainless steel fixtures"
+            ]
+          },
+          "Tailored Focus": {
+            "Custom Checklist": [
+              "Focus entirely on deep cleaning the kitchen and organizing the pantry",
+              "Spend the hours scrubbing grout and polishing all bathrooms",
+              "Help with intensive decluttering or seasonal closet organization",
+              "Tackle specific, high-traffic areas before a party or event",
+              "Handle unpacking and breaking down boxes in a new home"
+            ]
+          }
+        };
+
+    function renderGuides() {
+        const list = document.getElementById('guidesList');
+        if(list.innerHTML !== '') return; // Already rendered
+        
+        Object.keys(checklists).forEach((serviceName, i) => {
+            let guideHtml = `<button class="service-btn" onclick="toggleGuide('guide_${i}')">${serviceName}</button>
+                             <div class="guide-content" id="guide_${i}">`;
+            
+            const sections = checklists[serviceName];
+            Object.keys(sections).forEach(sectionTitle => {
+                guideHtml += `<h4 style="font-family:'Inter', sans-serif; font-size:11px; color:#C4A47C; text-transform:uppercase; letter-spacing:1px; margin: 15px 0 8px 0; border-bottom:1px solid #EFEBE5; padding-bottom:4px;">${sectionTitle}</h4>`;
+                sections[sectionTitle].forEach(task => {
+                    guideHtml += `<div style="margin-bottom:12px; display:flex; align-items:flex-start;"><div style="min-width:16px; max-width:16px; height:16px; border:2px solid #C4A47C; margin-right:10px; border-radius:4px; margin-top:2px;"></div> <span style="font-size:14px; color:#444; line-height:1.4;">${task}</span></div>`;
+                });
+            });
+            guideHtml += `</div>`;
+            list.innerHTML += guideHtml;
+        });
+    }
+
+    function toggleGuide(id) {
+        const el = document.getElementById(id);
+        if(el.style.display === 'block') {
+            el.style.display = 'none';
+        } else {
+            document.querySelectorAll('.guide-content').forEach(d => d.style.display = 'none');
+            el.style.display = 'block';
+        }
+    }
+
+    window.switchTab = function(tab) {
+        document.getElementById('jobsView').style.display = 'none';
+        document.getElementById('timesheetView').style.display = 'none';
+        document.getElementById('guidesView').style.display = 'none';
+        
+        document.getElementById('tabJobs').classList.remove('active');
+        document.getElementById('tabTimesheet').classList.remove('active');
+        document.getElementById('tabGuides').classList.remove('active');
+
+        if(tab === 'jobs') {
+            document.getElementById('jobsView').style.display = 'block';
+            document.getElementById('tabJobs').classList.add('active');
+        } else if(tab === 'timesheet') {
+            document.getElementById('timesheetView').style.display = 'block';
+            document.getElementById('tabTimesheet').classList.add('active');
+        } else if(tab === 'guides') {
+            document.getElementById('guidesView').style.display = 'block';
+            document.getElementById('tabGuides').classList.add('active');
+            renderGuides();
+        }
+    }
+
+    window.jumpToChecklist = function(serviceString) {
+        switchTab('guides');
+        let index = 0;
+        const lowerService = serviceString.toLowerCase();
+        const keys = Object.keys(checklists);
+        for(let i=0; i<keys.length; i++) {
+            if(lowerService.includes(keys[i].split(' ')[0].toLowerCase())) {
+                index = i;
+                break;
+            }
+        }
+        
+        const guideId = 'guide_' + index;
+        const el = document.getElementById(guideId);
+        if(el) {
+            document.querySelectorAll('.guide-content').forEach(d => d.style.display = 'none');
+            el.style.display = 'block';
+            el.scrollIntoView({behavior: "smooth", block: "center"});
+        }
+    }
+  </script>
+</body>
+</html>
