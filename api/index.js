@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 // Endpoint to create a PaymentIntent
-app.post('/create-payment-intent', async (req, res) => {
+app.post('/api/create-payment-intent', async (req, res) => {
     try {
         const { amount, service, name, email } = req.body;
 
@@ -40,7 +40,7 @@ app.post('/create-payment-intent', async (req, res) => {
 });
 
 // Endpoint to capture an authorized payment
-app.post('/capture-payment', async (req, res) => {
+app.post('/api/capture-payment', async (req, res) => {
     try {
         const { paymentIntentId } = req.body;
         if (!paymentIntentId) return res.status(400).json({ error: "Missing paymentIntentId" });
@@ -54,7 +54,7 @@ app.post('/capture-payment', async (req, res) => {
 });
 
 // Endpoint to cancel an authorized payment
-app.post('/cancel-payment', async (req, res) => {
+app.post('/api/cancel-payment', async (req, res) => {
     try {
         const { paymentIntentId } = req.body;
         if (!paymentIntentId) return res.status(400).json({ error: "Missing paymentIntentId" });
@@ -68,7 +68,7 @@ app.post('/cancel-payment', async (req, res) => {
 });
 
 // Endpoint to send booking email
-app.post('/send-booking', async (req, res) => {
+app.post('/api/send-booking', async (req, res) => {
     try {
         const { name, email, phone, date, time, address, notes, quoteData } = req.body;
 
@@ -155,7 +155,7 @@ Please check your Stripe Dashboard to see the authorized payment.
         res.json({ success: true, message: 'Email sent successfully!' });
     } catch (e) {
         console.error('Error sending email:', e.message);
-        res.status(500).json({ error: 'Failed to send email. Ensure your .env credentials are correct.' });
+        res.status(500).json({ error: 'Failed to send email. Google says: ' + e.message });
     }
 });
 
