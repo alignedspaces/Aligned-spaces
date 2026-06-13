@@ -23,8 +23,8 @@ app.post('/api/create-payment-intent', async (req, res) => {
                 customer_name: name,
                 service_type: service
             },
-            // Restrict explicitly to Card and ACH to prevent Klarna/Afterpay
-            payment_method_types: ['card', 'us_bank_account'],
+            // Restrict explicitly to Card to prevent Klarna/Afterpay (ACH doesn't support manual capture)
+            payment_method_types: ['card'],
             // This tells Stripe we want to place a hold (authorize) but NOT capture yet
             capture_method: 'manual', 
         });
