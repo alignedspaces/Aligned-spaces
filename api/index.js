@@ -13,12 +13,22 @@ app.post('/api/create-payment-intent', async (req, res) => {
     try {
         const { amount, service, name, email } = req.body;
 
+        // 1. Create a Stripe Customer to securely save their card for the remaining 80%
+        const customer = await stripe.customers.create({
+            name: name,
+            email: email,
+            description: 'Aligned Spaces Client'
+        });
+
+        // 2. Create the PaymentIntent for the 20% deposit
         // amount is expected in cents
         const paymentIntent = await stripe.paymentIntents.create({
             amount: amount,
             currency: 'usd',
-            description: `Cleaning Service: ${service}`,
+            customer: customer.id, // Attach to the new customer
+            description: `Cleaning Service: ${service} (20% Deposit)`,
             receipt_email: email,
+            setup_future_usage: 'off_session', // THIS SAVES THE CARD FOR LATER
             metadata: {
                 customer_name: name,
                 service_type: service
@@ -195,6 +205,8 @@ Service: ${quoteData.service}
 Date: ${date}
 Time: ${time}
 Estimated Total: $${quoteData.total}
+Deposit Secured (20%): $${(amount / 100).toFixed(2)}
+Remaining Balance to Charge Later: $${(Number(quoteData.total) - (amount / 100)).toFixed(2)}
 
 Notes:
 ${notes || 'None'}
