@@ -786,7 +786,8 @@ async function showBookingForm() {
             mode: 'payment',
             amount: renderAmount,
             currency: 'usd',
-            paymentMethodTypes: ['card', 'us_bank_account'], // Restrict to Card and ACH only
+            captureMethod: 'manual',
+            paymentMethodTypes: ['card'],
             appearance: { theme: 'stripe' }
         });
 
