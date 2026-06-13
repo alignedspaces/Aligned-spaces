@@ -88,36 +88,91 @@ app.post('/api/send-booking', async (req, res) => {
             to: email, // Send to the customer
             subject: `Your Booking is Confirmed - Aligned Spaces`,
             html: `
-            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #FDFBF7; color: #2C2B29; padding: 40px; border-radius: 8px; border: 1px solid #e5e5e5;">
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <h1 style="font-family: 'Times New Roman', serif; font-size: 28px; letter-spacing: 2px; margin: 0; color: #2C2B29;">ALIGNED SPACES</h1>
-                    <div style="height: 2px; background-color: #D5BBAE; width: 60px; margin: 15px auto;"></div>
-                </div>
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #FDFBF7; padding: 40px 20px;">
+        <tr>
+            <td align="center">
                 
-                <h2 style="font-size: 20px; font-weight: 400; text-align: center; margin-bottom: 30px;">Thank you for your reservation, ${name.split(' ')[0]}.</h2>
-                
-                <p style="font-size: 15px; line-height: 1.6; margin-bottom: 25px;">
-                    Thank you for welcoming Aligned Spaces into your property. Whether it's your personal home or an investment space, we know how important it is, and we are deeply grateful for the trust you place in us. Caring for your space is a privilege we don't take lightly.
-                </p>
+                <!-- Main Container -->
+                <table width="100%" max-width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #ffffff; border: 1px solid #E5E0D8; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+                    
+                    <!-- Header with Beige Background -->
+                    <tr>
+                        <td align="center" style="padding: 40px 20px 20px 20px; background-color: #FDFBF7; border-bottom: 2px solid #D5BBAE;">
+                            <img src="https://alignedspaces.us/logoemail.jpg" alt="Aligned Spaces" style="max-width: 400px; width: 80%; height: auto; display: block;">
+                        </td>
+                    </tr>
 
-                <div style="background-color: #ffffff; padding: 25px; border-radius: 6px; border-left: 4px solid #D5BBAE; margin-bottom: 30px;">
-                    <h3 style="margin-top: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #5A5957;">Reservation Details</h3>
-                    <p style="margin: 8px 0; font-size: 15px;"><strong>Service:</strong> ${quoteData.service}</p>
-                    <p style="margin: 8px 0; font-size: 15px;"><strong>Date:</strong> ${date}</p>
-                    <p style="margin: 8px 0; font-size: 15px;"><strong>Time:</strong> ${time}</p>
-                    <p style="margin: 8px 0; font-size: 15px;"><strong>Location:</strong> ${address}</p>
-                    <p style="margin: 8px 0; font-size: 15px;"><strong>Estimated Total:</strong> $${Number(quoteData.total).toLocaleString()}</p>
-                </div>
+                    <!-- Body Content -->
+                    <tr>
+                        <td style="padding: 40px 40px 20px 40px; background-color: #ffffff;">
+                            <h2 style="font-family: 'Times New Roman', serif; font-size: 24px; font-weight: 400; text-align: center; margin-top: 0; margin-bottom: 30px; color: #2C2B29; letter-spacing: 0.5px;">
+                                Thank you for your reservation, ${name.split(' ')[0]}.
+                            </h2>
+                            
+                            <p style="font-size: 15px; line-height: 1.6; margin-bottom: 30px; color: #5A5957;">
+                                Thank you for welcoming Aligned Spaces into your property. Whether it's your personal home or an investment space, we know how important it is, and we are deeply grateful for the trust you place in us. Caring for your space is a privilege we don't take lightly.
+                            </p>
 
-                <p style="font-size: 15px; line-height: 1.6; margin-bottom: 30px;">
-                    Our goal is to always deliver a pristine, perfectly aligned environment. We look forward to a long and valued relationship with you. If there is ever anything more we can do, please let us know!
-                </p>
+                            <!-- Receipt Box -->
+                            <div style="background-color: #FDFBF7; padding: 25px; border-radius: 6px; border-left: 4px solid #D5BBAE; margin-bottom: 30px;">
+                                <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: #888888; border-bottom: 1px solid #E5E0D8; padding-bottom: 10px;">
+                                    Reservation Details
+                                </h3>
+                                
+                                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td style="padding: 6px 0; font-size: 15px; color: #2C2B29;"><strong>Service:</strong></td>
+                                        <td style="padding: 6px 0; font-size: 15px; color: #5A5957; text-align: right;">${quoteData.service}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px 0; font-size: 15px; color: #2C2B29;"><strong>Date:</strong></td>
+                                        <td style="padding: 6px 0; font-size: 15px; color: #5A5957; text-align: right;">${date}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px 0; font-size: 15px; color: #2C2B29;"><strong>Time:</strong></td>
+                                        <td style="padding: 6px 0; font-size: 15px; color: #5A5957; text-align: right;">${time}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px 0; font-size: 15px; color: #2C2B29;"><strong>Location:</strong></td>
+                                        <td style="padding: 6px 0; font-size: 15px; color: #5A5957; text-align: right;">${address}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" style="padding: 15px 0 5px 0;">
+                                            <div style="border-top: 1px solid #E5E0D8;"></div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 10px 0 0 0; font-size: 16px; color: #2C2B29;"><strong>Estimated Total:</strong></td>
+                                        <td style="padding: 10px 0 0 0; font-size: 16px; color: #D5BBAE; text-align: right;"><strong>$${Number(quoteData.total).toLocaleString()}</strong></td>
+                                    </tr>
+                                </table>
+                            </div>
 
-                <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
-                    <p style="font-size: 13px; color: #5A5957; margin-bottom: 5px;"><strong>Cancellation Policy</strong></p>
-                    <p style="font-size: 12px; color: #777; line-height: 1.5; margin: 0;">Please note that to ensure the highest quality of service, cancellations made within 24 hours of the scheduled cleaning may incur a cancellation fee.</p>
-                </div>
-            </div>
+                            <p style="font-size: 15px; line-height: 1.6; margin-bottom: 30px; color: #5A5957;">
+                                Our goal is to always deliver a pristine, perfectly aligned environment. We look forward to a long and valued relationship with you. If there is ever anything more we can do, please let us know!
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 20px 40px 40px 40px; text-align: center; border-top: 1px solid #E5E0D8; background-color: #FDFBF7;">
+                            <p style="font-size: 13px; color: #2C2B29; margin-bottom: 8px;"><strong>Cancellation Policy</strong></p>
+                            <p style="font-size: 12px; color: #888888; line-height: 1.5; margin: 0;">
+                                Please note that to ensure the highest quality of service, cancellations made within 24 hours of the scheduled cleaning may incur a cancellation fee.
+                            </p>
+                            <p style="font-size: 12px; color: #aaaaaa; margin-top: 20px; margin-bottom: 0;">
+                                &copy; 2026 Aligned Spaces. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+                <!-- End Main Container -->
+
+            </td>
+        </tr>
+    </table>
             `
         };
 
