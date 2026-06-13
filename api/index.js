@@ -84,7 +84,7 @@ app.post('/api/send-booking', async (req, res) => {
 
         // 1. Email to the Client (Beautiful HTML Receipt)
         const mailOptionsClient = {
-            from: `"Aligned Spaces Concierge" <${process.env.EMAIL_USER}>`,
+            from: `"Aligned Spaces" <${process.env.EMAIL_USER}>`,
             to: email, // Send to the customer
             subject: `Your Booking is Confirmed - Aligned Spaces`,
             html: `
