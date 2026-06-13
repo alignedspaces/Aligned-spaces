@@ -106,7 +106,7 @@ app.post('/api/send-booking', async (req, res) => {
                     <p style="margin: 8px 0; font-size: 15px;"><strong>Date:</strong> ${date}</p>
                     <p style="margin: 8px 0; font-size: 15px;"><strong>Time:</strong> ${time}</p>
                     <p style="margin: 8px 0; font-size: 15px;"><strong>Location:</strong> ${address}</p>
-                    <p style="margin: 8px 0; font-size: 15px;"><strong>Estimated Total:</strong> $${quoteData.totalPrice.toLocaleString()}</p>
+                    <p style="margin: 8px 0; font-size: 15px;"><strong>Estimated Total:</strong> $${Number(quoteData.total).toLocaleString()}</p>
                 </div>
 
                 <p style="font-size: 15px; line-height: 1.6; margin-bottom: 30px;">
@@ -139,7 +139,7 @@ Service Details:
 Service: ${quoteData.service}
 Date: ${date}
 Time: ${time}
-Estimated Total: $${quoteData.totalPrice}
+Estimated Total: $${quoteData.total}
 
 Notes:
 ${notes || 'None'}
