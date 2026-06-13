@@ -897,13 +897,17 @@ async function submitBooking(e) {
             const bookingData = { name, email, phone, addr, notes, date: state.selectedDate, time: state.selectedTime, quoteData: quote, total: quote.total, paymentStatus: result.paymentIntent.status, paymentIntentId: result.paymentIntent.id };
             if (window.saveBookingToCRM) window.saveBookingToCRM(bookingData);
 
-            await fetch('/api/send-booking', {
+            const emailRes = await fetch('/api/send-booking', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name, email, phone, addr, notes, date: state.selectedDate, time: state.selectedTime, quoteData: quote
                 })
             });
+            const emailData = await emailRes.json();
+            if (!emailRes.ok) {
+                alert("Payment succeeded but email failed to send: " + (emailData.error || "Unknown error"));
+            }
         }
         
         showSuccessScreen();
@@ -932,7 +936,7 @@ async function submitBooking(e) {
         body += `\nESTIMATED TOTAL: $${quote.total}\n\n`;
         body += `--- CLIENT NOTES ---\n${notes || 'None'}`;
 
-        window.location.href = `mailto:hello@alignedspaces.com?subject=${subject}&body=${encodeURIComponent(body)}`;
+        window.location.href = `mailto:hello@alignedspaces.us?subject=${subject}&body=${encodeURIComponent(body)}`;
         showSuccessScreen();
     }
 }
