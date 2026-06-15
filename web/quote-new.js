@@ -510,7 +510,7 @@ function applyPromoCode() {
     
     if (code === 'NARANJO1395') {
         state.promoCodeApplied = true;
-        msg.textContent = 'Promo code applied! 95% off.';
+        msg.textContent = 'Promo code applied! 99% off.';
         msg.style.color = 'var(--accent-primary)';
         msg.style.display = 'block';
         updatePrice();
@@ -610,7 +610,7 @@ function updatePrice() {
 
     let promoDiscountAmt = 0;
     if (state.promoCodeApplied) {
-        promoDiscountAmt = Math.round(state.totalPrice * 0.95);
+        promoDiscountAmt = Math.round(state.totalPrice * 0.99);
         state.totalPrice -= promoDiscountAmt;
     }
 
@@ -786,7 +786,8 @@ async function showBookingForm() {
             mode: 'payment',
             amount: renderAmount,
             currency: 'usd',
-            paymentMethodTypes: ['card', 'us_bank_account'], // Restrict to Card and ACH only
+            captureMethod: 'manual',
+            paymentMethodTypes: ['card'],
             appearance: { theme: 'stripe' }
         });
 
@@ -846,11 +847,14 @@ async function submitBooking(e) {
         }
 
         // 2. Fetch the client secret from our backend ONLY when they click submit
+        let depositAmountCents = Math.round((quote.total * 0.20) * 100);
+        if (depositAmountCents < 50) depositAmountCents = 50; // Stripe minimum is $0.50
+
         const response = await fetch('/api/create-payment-intent', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                amount: Math.round((quote.total * 0.20) * 100),
+                amount: depositAmountCents,
                 service: quote.service,
                 name: name,
                 email: email
@@ -894,13 +898,17 @@ async function submitBooking(e) {
             const bookingData = { name, email, phone, addr, notes, date: state.selectedDate, time: state.selectedTime, quoteData: quote, total: quote.total, paymentStatus: result.paymentIntent.status, paymentIntentId: result.paymentIntent.id };
             if (window.saveBookingToCRM) window.saveBookingToCRM(bookingData);
 
-            await fetch('/api/send-booking', {
+            const emailRes = await fetch('/api/send-booking', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name, email, phone, addr, notes, date: state.selectedDate, time: state.selectedTime, quoteData: quote
                 })
             });
+            const emailData = await emailRes.json();
+            if (!emailRes.ok) {
+                alert("Payment succeeded but email failed to send: " + (emailData.error || "Unknown error"));
+            }
         }
         
         showSuccessScreen();
@@ -929,7 +937,7 @@ async function submitBooking(e) {
         body += `\nESTIMATED TOTAL: $${quote.total}\n\n`;
         body += `--- CLIENT NOTES ---\n${notes || 'None'}`;
 
-        window.location.href = `mailto:hello@alignedspaces.com?subject=${subject}&body=${encodeURIComponent(body)}`;
+        window.location.href = `mailto:hello@alignedspaces.us?subject=${subject}&body=${encodeURIComponent(body)}`;
         showSuccessScreen();
     }
 }
