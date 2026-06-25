@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="icon.png">
 </head>
 <body class="has-announcement">
     <!-- Announcement Bar -->
@@ -173,8 +174,8 @@
                     <p>Upfront pricing and realistic expectations. We deliver on our promises with absolute integrity.</p>
                 </div>
                 <div class="value-item">
-                    <h4>7. Conscious Cleaning</h4>
-                    <p>We prioritize high-quality, safe, and non-toxic products that protect your family and pets.</p>
+                    <h3 style="font-family: 'Playfair Display', serif; margin-bottom: 0.5rem;">Premium Supplies</h3>
+                    <p>We use high-quality, professional-grade products to ensure your home receives the deepest clean possible.</p>
                 </div>
             </div>
         </div>
@@ -190,7 +191,7 @@
                 <details class="faq-item">
                     <summary class="faq-question">What is included in the Signature Clean?</summary>
                     <div class="faq-answer">
-                        Our Signature Clean is designed to maintain your home at its highest alignment. It includes thorough dusting, wiping down of all surfaces, vacuuming, mopping, and comprehensive kitchen and bathroom sanitation. We bring all of our own premium, eco-friendly supplies.
+                        Our Signature Clean is designed to maintain your home at its highest alignment. It includes thorough dusting, wiping down of all surfaces, vacuuming, mopping, and comprehensive kitchen and bathroom sanitation. We bring all of our own premium supplies.
                     </div>
                 </details>
 
@@ -218,14 +219,13 @@
                 <details class="faq-item">
                     <summary class="faq-question">What if I have pets in my home?</summary>
                     <div class="faq-answer">
-                        We love pets! Our team is trained to be mindful of your furry friends and we carefully monitor our cleaning products to keep them out of reach of curious paws. Just let us know in your booking notes if there are any special instructions for them while we clean.
+                        We love pets! However, because our cleaners are deeply focused on their work and animals are naturally curious, we ask that you please keep them secured or close to you if possible. While we try our best to be mindful of your furry friends, accidents can happen and we want to avoid that at all costs. Just let us know in your booking notes if there are any special instructions.
                     </div>
                 </details>
-
                 <details class="faq-item">
-                    <summary class="faq-question">Do I need to provide any cleaning supplies?</summary>
+                    <summary class="faq-question">Do I need to provide cleaning supplies?</summary>
                     <div class="faq-answer">
-                        No, you don't need to provide a thing. We arrive fully equipped with our own curated selection of premium, eco-friendly supplies and professional-grade equipment.
+                        No, you don't need to provide a thing. We arrive fully equipped with our own curated selection of premium supplies and professional-grade equipment. However, if you prefer us to use your own specific products or your personal vacuum, please feel free to let us know!
                     </div>
                 </details>
             </div>
@@ -264,7 +264,11 @@
         <div class="footer-bottom">
             <p>&copy; 2026 ALIGNED SPACES. All rights reserved.</p>
         </div>
-    </footer>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

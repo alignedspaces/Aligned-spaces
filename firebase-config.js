@@ -35,3 +35,17 @@ window.saveBookingToCRM = async function(bookingData) {
         console.error("Error saving booking to CRM: ", e);
     }
 };
+
+// Expose globally for script.js (Contact Forms)
+window.saveInquiryToCRM = async function(inquiryData) {
+    try {
+        await db.collection("inquiries").add({
+            ...inquiryData,
+            status: "New",
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        console.log("Successfully saved inquiry to Firebase CRM.");
+    } catch (e) {
+        console.error("Error saving inquiry to CRM: ", e);
+    }
+};

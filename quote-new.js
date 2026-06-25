@@ -919,25 +919,7 @@ async function submitBooking(e) {
         
         const bookingData = { name, email, phone, addr, notes, date: state.selectedDate, time: state.selectedTime, quoteData: quote, total: quote.total, paymentStatus: 'Pending (Email Fallback)' };
         if (window.saveBookingToCRM) window.saveBookingToCRM(bookingData);
-
-        const subject = encodeURIComponent(`New Cleaning Request: ${name}`);
-        let body = `Hello Aligned Spaces,\n\nI would like to request a cleaning service.\n\n`;
-        body += `Name:            ${name}\n`;
-        body += `Email:           ${email}\n`;
-        body += `Phone:           ${phone || 'Not provided'}\n`;
-        body += `Requested Date:  ${state.selectedDate}\n`;
-        body += `Arrival Window:  ${state.selectedTime || 'Not selected'}\n`;
-        body += `Address:         ${addr || 'Not provided'}\n\n`;
-        body += `--- QUOTE DETAILS ---\n`;
-        body += `Service:         ${quote.service}\n`;
-        if (quote.sqftLabel) body += `Size:            ${quote.sqftLabel}\n`;
-        else if (quote.hours) body += `Hours:           ${quote.hours}h × ${quote.cleaners} cleaner(s)\n`;
-        body += `Frequency:       ${quote.frequency || 'One-Time'}\n`;
-        if (quote.addons && quote.addons.length > 0) body += `Add-Ons:         ${quote.addons.join(', ')}\n`;
-        body += `\nESTIMATED TOTAL: $${quote.total}\n\n`;
-        body += `--- CLIENT NOTES ---\n${notes || 'None'}`;
-
-        window.location.href = `mailto:hello@alignedspaces.us?subject=${subject}&body=${encodeURIComponent(body)}`;
+        
         showSuccessScreen();
     }
 }
