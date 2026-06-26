@@ -318,6 +318,14 @@
             <input type="checkbox" id="chkHero"> <strong>Community Hero Discount (10% Off)</strong>
           </label>
         </div>
+        
+        <div class="form-group" style="margin-top: 14px;">
+          <label>Manual Discount (up to 20%)</label>
+          <div style="display:flex; align-items:center; gap:8px;">
+             <input type="number" id="manualDiscount" value="0" min="0" max="20" style="width: 80px; padding: 6px; border: 1px solid var(--sand); border-radius: 6px;" onchange="calculateQuote()">
+             <span>% off</span>
+          </div>
+        </div>
 
         <button class="btn" onclick="resetQuote()">Reset Draft</button>
       </div>
@@ -331,7 +339,7 @@
         </div>
         <div id="depositInfo" style="margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 15px; display: none;">
           <div style="display:flex; justify-content:space-between; font-size:0.9rem; color:#d1c8bb; margin-bottom:8px;">
-            <span>Required Deposit (50%)</span>
+            <span>Required Deposit (20%)</span>
             <span id="depositAmount" style="font-weight:600; color:#fff;">$0</span>
           </div>
           <div style="display:flex; justify-content:space-between; font-size:0.9rem; color:#d1c8bb;">
@@ -673,6 +681,15 @@
       }
     }
 
+    const manualDisc = parseInt(document.getElementById('manualDiscount').value) || 0;
+    if (manualDisc > 0) {
+      const manualPercent = Math.min(manualDisc, 20) / 100;
+      if (manualPercent > maxDiscPercent) {
+        maxDiscPercent = manualPercent;
+        maxDiscLabel = `Manual Discount (${manualDisc}%)`;
+      }
+    }
+
     if (maxDiscPercent > 0) {
       const discountAmt = Math.round(subtotal * maxDiscPercent);
       lines.push({ label: maxDiscLabel, value: '−' + fmt(discountAmt), discount: true });
@@ -693,7 +710,7 @@
     const depositInfo = document.getElementById('depositInfo');
     if (total > 0) {
       depositInfo.style.display = 'block';
-      const dep = Math.round(total / 2);
+      const dep = Math.round(total * 0.20);
       const bal = total - dep;
       document.getElementById('depositAmount').textContent = fmt(dep);
       document.getElementById('balanceAmount').textContent = fmt(bal);
@@ -709,6 +726,7 @@
     cleanersInput.value = '1';
     frequencySelect.value = 'onetime';
     document.querySelectorAll('.addon-label input[type="checkbox"]').forEach(chk => chk.checked = false);
+    document.getElementById('manualDiscount').value = '0';
     updateUI();
   }
 
