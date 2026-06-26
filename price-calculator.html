@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aligned Spaces — Price Calculator (Dynamic Rates)</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ivory: #FAF8F5;
+    --warm-white: #F5F0EB;
+    --sand: #E8DDD3;
+    --gold: #C9A96E;
+    --gold-dark: #A8863E;
+    --charcoal: #2C2C2C;
+    --soft-gray: #6B6B6B;
+    --sage: #8FA98B;
+    --sage-dark: #6B8A66;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.06);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--ivory);
+    color: var(--charcoal);
+    line-height: 1.6;
+  }
+
+  .header {
+    background: linear-gradient(135deg, var(--charcoal) 0%, #3a3a3a 100%);
+    color: white;
+    padding: 40px 24px;
+    text-align: center;
+  }
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .header p { font-size: 0.9rem; opacity: 0.7; font-weight: 300; }
+  .header .badge {
+    display: inline-block; background: var(--gold); color: var(--charcoal);
+    padding: 4px 16px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1px; margin-top: 12px;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  .section {
+    background: white; border-radius: var(--radius);
+    box-shadow: var(--shadow); margin-bottom: 28px; border: 1px solid rgba(0,0,0,0.04);
+  }
+  .section-header {
+    background: var(--warm-white); padding: 18px 24px; border-bottom: 1px solid var(--sand);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-header .num {
+    background: var(--gold); color: white; width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700;
+  }
+  .section-header h2 { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 600; }
+  .section-body { padding: 24px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th, td { padding: 8px 10px; text-align: center; border-bottom: 1px solid #f0ece7; border-right: 1px solid #f0ece7; }
+  th:first-child, td:first-child { text-align: left; }
+  td:last-child, th:last-child { border-right: none; }
+  
+  th { background: var(--warm-white); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; color: var(--soft-gray); }
+  .th-group { background: #e6dfd5; font-size: 0.8rem; color: var(--charcoal); border-bottom: 1px solid #d1c8bb; }
+  
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fdfcfa; }
+
+  td.editable {
+    background: #FFFDE7; cursor: text; font-weight: 600; color: var(--gold-dark); transition: background 0.2s;
+  }
+  td.editable:hover, td.editable:focus { outline: 2px solid var(--gold); outline-offset: -2px; background: #FFF9C4; }
+  td.calculated { font-weight: 600; background: #fafafa; color: var(--charcoal); }
+
+  .edit-hint {
+    font-size: 0.72rem; color: var(--gold-dark); background: #FFFDE7; padding: 4px 12px;
+    border-radius: 4px; display: inline-flex; margin-bottom: 14px; font-weight: 600;
+  }
+
+  /* Quote Builder */
+  .quote-builder { border: 2px solid var(--gold); }
+  .quote-builder .section-header { background: linear-gradient(135deg, var(--charcoal), #3a3a3a); border-bottom: 2px solid var(--gold); }
+  .quote-builder .section-header h2 { color: white; }
+  .quote-builder .section-header .num { background: var(--gold); }
+
+  .quote-grid { display: grid; grid-template-columns: 1fr 320px; gap: 0; }
+  @media (max-width: 768px) { .quote-grid { grid-template-columns: 1fr; } }
+  .quote-form { padding: 24px; }
+  .quote-summary { background: var(--warm-white); border-left: 2px solid var(--sand); padding: 24px; display: flex; flex-direction: column; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--soft-gray); margin-bottom: 6px; }
+  .form-group select, .form-group input { width: 100%; padding: 10px 14px; border: 1px solid var(--sand); border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.9rem; }
+  .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--gold); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .addon-label { display:flex; align-items:center; gap:8px; font-weight:normal; text-transform:none; font-size:0.85rem; color:var(--charcoal); cursor:pointer; }
+  .addon-label input { width:16px; height:16px; margin:0; }
+
+  /* Summary panel */
+  .summary-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 600; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--sand); }
+  .summary-line { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.85rem; }
+  .summary-line.sub { color: var(--soft-gray); font-size: 0.8rem; padding-left: 12px; }
+  .summary-line.discount { color: var(--sage-dark); }
+  .summary-total { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 16px; border-top: 2px solid var(--gold); }
+  .summary-total .label { font-family: 'Playfair Display', serif; font-weight: 600; }
+  .summary-total .amount { font-size: 1.8rem; font-weight: 700; color: var(--gold-dark); font-family: 'Playfair Display', serif; }
+
+  .btn { padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; background: var(--gold); color: white; cursor: pointer; margin-top: 10px; }
+  .btn:hover { background: var(--gold-dark); }
+  .midpoint-note { font-size: 0.7rem; color: var(--soft-gray); margin-left: 6px; font-weight: normal; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>ALIGNED SPACES</h1>
+  <p>Pricing Calculator — Rate Design Studio</p>
+  <div class="badge">✏️ Edit the Yellow Rates, Prices auto-calculate!</div>
+  <button class="btn" style="background:#fff; color:var(--charcoal); margin-top:15px; border:2px solid var(--gold);" onclick="exportData()">📤 Export My Prices for AI</button>
+</div>
+
+<script>
+  function exportData() {
+    const data = {
+      rates: localStorage.getItem('alignedRates_v3'),
+      settings: localStorage.getItem('alignedSettings_v3')
+    };
+    navigator.clipboard.writeText(JSON.stringify(data)).then(() => {
+      alert("¡Tus precios han sido copiados! Ahora solo pégalos (Ctrl+V) en el chat para que la Inteligencia Artificial los pueda leer.");
+    });
+  }
+</script>
+
+<div class="container">
+
+  <!-- ══ SECTION 1: Base Rates & Prices ══ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="num">1</div>
+      <h2>Rate Design (Sq Ft Curve)</h2>
+    </div>
+    <div class="section-body">
+      <div class="edit-hint">⚠️ EDIT THE YELLOW RATES. The "Total" columns will multiply your Rate × Sq Ft automatically.</div>
+      <div style="overflow-x:auto;">
+        <table id="basePriceTable">
+          <thead>
+            <tr>
+              <th rowspan="2" style="border-right:2px solid #d1c8bb;">Sq Ft Range</th>
+              <th colspan="2" class="th-group" style="border-right:2px solid #d1c8bb;">Signature Clean</th>
+              <th colspan="2" class="th-group" style="border-right:2px solid #d1c8bb;">Transition Reset</th>
+              <th colspan="2" class="th-group" style="border-right:2px solid #d1c8bb;">5-Star Turnover</th>
+              <th colspan="2" class="th-group">Final Reveal (Post)</th>
+            </tr>
+            <tr>
+              <th>Rate ($)</th><th style="border-right:2px solid #d1c8bb;">Total</th>
+              <th>Rate ($)</th><th style="border-right:2px solid #d1c8bb;">Total</th>
+              <th>Rate ($)</th><th style="border-right:2px solid #d1c8bb;">Total</th>
+              <th>Rate ($)</th><th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="ratesTbody">
+            <!-- Tiers (Midpoint values used for math: 600, 700, 900, 1100, 1300...4000) -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-row" style="grid-template-columns: 1fr;">
+    <!-- ══ SECTION 2: Other Settings & Discounts ══ -->
+    <div class="section" style="margin-bottom:0;">
+      <div class="section-header"><div class="num">2</div><h2>Other Settings & Discounts</h2></div>
+      <div class="section-body" style="padding:16px;">
+        <table>
+          <tbody>
+            <tr><td colspan="3" class="th-group" style="text-align:left; font-weight:600;">Rates & Add-ons</td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Tailored Focus Rate (per hr)</td><td class="editable" contenteditable="true" id="tailored-rate">65</td><td style="color:var(--soft-gray); font-size:0.75rem;">Hourly cleaning rate</td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Dish Washing</td><td class="editable" contenteditable="true" id="addon-dishes">25</td><td style="color:var(--soft-gray); font-size:0.75rem;">All Services</td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Inside Fridge (No Freezer)</td><td class="editable" contenteditable="true" id="addon-fridge">60</td><td style="color:var(--soft-gray); font-size:0.75rem;">Signature Clean</td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Inside Oven</td><td class="editable" contenteditable="true" id="addon-oven">60</td><td style="color:var(--soft-gray); font-size:0.75rem;">Signature Clean</td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Inside Cabinets (Empty)</td><td class="editable" contenteditable="true" id="addon-cabinets">50</td><td style="color:var(--soft-gray); font-size:0.75rem;">Signature Clean</td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Interior Windows <span style="font-size:0.7rem; font-weight:normal; opacity:0.8;"><br>*Excludes sliding/floor-to-ceiling</span></td><td class="editable" contenteditable="true" id="addon-windows">15</td><td style="color:var(--soft-gray); font-size:0.75rem;">Signature Clean</td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Organization (per hr, up to 5)</td><td class="editable" contenteditable="true" id="addon-org">45</td><td style="color:var(--soft-gray); font-size:0.75rem;">Signature Clean</td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Garage Sweep & Mop</td><td class="editable" contenteditable="true" id="addon-garage-sig">70</td><td style="color:var(--soft-gray); font-size:0.75rem;">Signature Clean</td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Balcony Sweeping</td><td class="editable" contenteditable="true" id="addon-balcony">40</td><td style="color:var(--soft-gray); font-size:0.75rem;">Signature Clean</td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Patio Sweeping</td><td class="editable" contenteditable="true" id="addon-patio-sig">80</td><td style="color:var(--soft-gray); font-size:0.75rem;">Signature Clean</td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Garage (Sweep + Cabinets)</td><td class="editable" contenteditable="true" id="addon-garage-trans">90</td><td style="color:var(--soft-gray); font-size:0.75rem;">Transition Reset</td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Patio (Sweep & Wipe)</td><td class="editable" contenteditable="true" id="addon-patio-trans">80</td><td style="color:var(--soft-gray); font-size:0.75rem;">Transition Reset</td></tr>
+            <tr><td style="text-align:left; font-weight:600;">BBQ Grill Cleaning</td><td class="editable" contenteditable="true" id="addon-grill">60</td><td style="color:var(--soft-gray); font-size:0.75rem;">Turnover</td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Emergency/Same-Day</td><td class="editable" contenteditable="true" id="addon-emergency">50</td><td style="color:var(--soft-gray); font-size:0.75rem;">Turnover</td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Garage Post-Const</td><td class="editable" contenteditable="true" id="addon-garage-post">100</td><td style="color:var(--soft-gray); font-size:0.75rem;">Final Reveal</td></tr>
+            <tr><td colspan="3" class="th-group" style="text-align:left; font-weight:600; margin-top:10px;">Discounts</td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Bi-Weekly Discount</td><td class="editable" contenteditable="true" id="disc-biweekly">10%</td><td style="color:var(--soft-gray); font-size:0.75rem;">Applied to Signature Clean</td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Weekly Discount</td><td class="editable" contenteditable="true" id="disc-weekly">20%</td><td style="color:var(--soft-gray); font-size:0.75rem;">Applied to Signature Clean</td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Monthly Discount</td><td class="editable" contenteditable="true" id="disc-monthly">5%</td><td style="color:var(--soft-gray); font-size:0.75rem;">Applied to Signature Clean</td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Community Hero Discount</td><td class="editable" contenteditable="true" id="disc-hero">10%</td><td style="color:var(--soft-gray); font-size:0.75rem;">Over 60, Military, Police, Teachers, Doctors, Nurses, Firefighters, Professors</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <br>
+
+  <!-- ══ SECTION 4: QUOTE BUILDER ══ -->
+  <div class="section quote-builder">
+    <div class="section-header">
+      <div class="num">4</div>
+      <h2>Live Quote Builder</h2>
+    </div>
+
+    <div class="quote-grid">
+      <div class="quote-form" id="quoteForm">
+        <div class="form-group">
+          <label>Service</label>
+          <select id="serviceSelect">
+            <option value="">— Select a service —</option>
+            <option value="signature">Signature Clean</option>
+            <option value="transition">Transition Reset</option>
+            <option value="turnover">5-Star Turnover</option>
+            <option value="postconst">Post-Construction (Final Reveal)</option>
+            <option value="tailored">Tailored Focus</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="mainConfigRow" style="display:none;">
+          <label>Square Footage</label>
+          <input type="number" id="sqftExactInput" value="1500" min="100" max="10000">
+        </div>
+
+        <div class="form-row" id="tailoredRow" style="display:none;">
+          <div class="form-group">
+            <label>Hours</label>
+            <input type="number" id="hoursInput" value="3" min="3" max="12">
+          </div>
+          <div class="form-group">
+            <label>Cleaners</label>
+            <input type="number" id="cleanersInput" value="1" min="1" max="5">
+          </div>
+        </div>
+
+        <!-- Signature Clean Add-ons -->
+        <div class="form-group" id="signatureAddonsRow" style="display:none; margin-top:14px;">
+          <label>Signature Clean Extras</label>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label class="addon-label"><input type="checkbox" id="chkDishesSig"> Dish Washing</label>
+            <label class="addon-label"><input type="checkbox" id="chkFridgeSig"> Inside Fridge (No Freezer)</label>
+            <label class="addon-label"><input type="checkbox" id="chkOvenSig"> Inside Oven</label>
+            <label class="addon-label"><input type="checkbox" id="chkCabinetsSig"> Inside Cabinets (Must be empty)</label>
+            <label class="addon-label"><input type="checkbox" id="chkWindowsSig"> Interior Windows (per room, std only)</label>
+            <label class="addon-label"><input type="checkbox" id="chkOrgSig"> Organization (<input type="number" id="qtyOrgSig" value="1" min="1" max="5" style="width:40px; padding:2px; display:inline-block;" onchange="calculateQuote()"> hrs)</label>
+            <label class="addon-label"><input type="checkbox" id="chkGarageSig"> Garage Sweep & Mop</label>
+            <label class="addon-label"><input type="checkbox" id="chkBalconySig"> Balcony Sweeping</label>
+            <label class="addon-label"><input type="checkbox" id="chkPatioSig"> Patio Sweeping</label>
+          </div>
+        </div>
+
+        <!-- Transition Reset Add-ons -->
+        <div class="form-group" id="transitionAddonsRow" style="display:none; margin-top:14px;">
+          <label>Transition Reset Extras</label>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label class="addon-label"><input type="checkbox" id="chkDishesTrans"> Dish Washing</label>
+            <label class="addon-label"><input type="checkbox" id="chkGarageTrans"> Garage (Sweep & Wipe Cabinets)</label>
+            <label class="addon-label"><input type="checkbox" id="chkPatioTrans"> Patio (Sweep & Wipe)</label>
+          </div>
+        </div>
+
+        <!-- Turnover Add-ons -->
+        <div class="form-group" id="turnoverAddonsRow" style="display:none; margin-top:14px;">
+          <label>Turnover Extras</label>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label class="addon-label"><input type="checkbox" id="chkDishesTurn"> Dish Washing</label>
+            <label class="addon-label"><input type="checkbox" id="chkGrillTurn"> Deep BBQ Grill Cleaning</label>
+            <label class="addon-label"><input type="checkbox" id="chkEmergencyTurn"> Emergency / Same-Day</label>
+          </div>
+        </div>
+
+        <!-- Post Construction Add-ons -->
+        <div class="form-group" id="postconstAddonsRow" style="display:none; margin-top:14px;">
+          <label>Final Reveal Extras</label>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label class="addon-label"><input type="checkbox" id="chkDishesPost"> Dish Washing</label>
+            <label class="addon-label"><input type="checkbox" id="chkGaragePost"> Garage (Wipe Cabinets & Floor)</label>
+          </div>
+        </div>
+
+        <div class="form-group" id="frequencyRow" style="display:none;">
+          <label>Frequency (Signature Only)</label>
+          <select id="frequencySelect">
+            <option value="onetime">One-Time</option>
+            <option value="weekly">Weekly (20% off)</option>
+            <option value="biweekly">Bi-Weekly (10% off)</option>
+            <option value="monthly">Monthly (5% off)</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="volumeRow" style="display:none;">
+          <label>Host Partner Volume (Turnover Only)</label>
+          <select id="volumeSelect">
+            <option value="onetime">1 - 5 cleans/mo (0% off)</option>
+            <option value="partner10">6 - 10 cleans/mo (10% off)</option>
+            <option value="partner20">11+ cleans/mo (20% off)</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-top: 14px;">
+          <label class="addon-label">
+            <input type="checkbox" id="chkHero"> <strong>Community Hero Discount (10% Off)</strong>
+          </label>
+        </div>
+
+        <button class="btn" onclick="resetQuote()">Reset Draft</button>
+      </div>
+
+      <div class="quote-summary">
+        <div class="summary-title">Price Breakdown</div>
+        <div id="summaryContent"><div class="summary-line" style="color:var(--soft-gray);font-style:italic;">Select a service...</div></div>
+        <div class="summary-total">
+          <span class="label">GRAND TOTAL</span>
+          <span class="amount" id="grandTotal">$0</span>
+        </div>
+        <div id="depositInfo" style="margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 15px; display: none;">
+          <div style="display:flex; justify-content:space-between; font-size:0.9rem; color:#d1c8bb; margin-bottom:8px;">
+            <span>Required Deposit (50%)</span>
+            <span id="depositAmount" style="font-weight:600; color:#fff;">$0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.9rem; color:#d1c8bb;">
+            <span>Balance due after clean</span>
+            <span id="balanceAmount" style="font-weight:600; color:#fff;">$0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Tiers Definition
+  const tiers = [
+    { label: "Under 600 sq ft", mid: 600 },
+    { label: "600 – 799 sq ft", mid: 700 },
+    { label: "800 – 999 sq ft", mid: 900 },
+    { label: "1,000 – 1,199 sq ft", mid: 1100 },
+    { label: "1,200 – 1,399 sq ft", mid: 1300 },
+    { label: "1,400 – 1,599 sq ft", mid: 1500 },
+    { label: "1,600 – 1,799 sq ft", mid: 1700 },
+    { label: "1,800 – 1,999 sq ft", mid: 1900 },
+    { label: "2,000 – 2,199 sq ft", mid: 2100 },
+    { label: "2,200 – 2,399 sq ft", mid: 2300 },
+    { label: "2,400 – 2,599 sq ft", mid: 2500 },
+    { label: "2,600 – 2,799 sq ft", mid: 2700 },
+    { label: "2,800 – 2,999 sq ft", mid: 2900 },
+    { label: "3,000 – 3,199 sq ft", mid: 3100 },
+    { label: "3,200 – 3,399 sq ft", mid: 3300 },
+    { label: "3,400 – 3,599 sq ft", mid: 3500 },
+    { label: "3,600 – 3,799 sq ft", mid: 3700 },
+    { label: "3,800 – 3,999 sq ft", mid: 3900 },
+    { label: "4,000 – 4,999 sq ft", mid: 4500 },
+    { label: "5,000 – 6,000 sq ft", mid: 5500 }
+  ];
+
+  // Pre-fill Interpolated Rates (Signature: 0.42 -> 0.20, Transition: 0.85 -> 0.33)
+  const defaultRates = {
+    signature: [0.42, 0.41, 0.39, 0.37, 0.35, 0.33, 0.31, 0.30, 0.29, 0.28, 0.27, 0.26, 0.25, 0.24, 0.23, 0.22, 0.21, 0.21, 0.20, 0.20],
+    transition: [0.85, 0.82, 0.77, 0.72, 0.68, 0.64, 0.61, 0.58, 0.55, 0.53, 0.51, 0.49, 0.47, 0.45, 0.43, 0.41, 0.39, 0.38, 0.35, 0.33],
+    turnover: [0.52, 0.50, 0.48, 0.46, 0.44, 0.42, 0.40, 0.38, 0.36, 0.34, 0.32, 0.31, 0.30, 0.29, 0.28, 0.27, 0.26, 0.25, 0.24, 0.23],
+    postconst: [0.90, 0.87, 0.82, 0.77, 0.73, 0.69, 0.65, 0.62, 0.59, 0.56, 0.54, 0.51, 0.49, 0.47, 0.45, 0.43, 0.41, 0.40, 0.38, 0.36]
+  };
+
+  try {
+    const savedRates = JSON.parse(localStorage.getItem('alignedRates_v3'));
+    if (savedRates) {
+      Object.keys(savedRates).forEach(s => {
+        if (defaultRates[s] && savedRates[s].length > 0) defaultRates[s] = savedRates[s];
+      });
+    }
+  } catch(e) {}
+
+  // Generate Table
+  const tbody = document.getElementById('ratesTbody');
+  let html = '';
+  
+  tiers.forEach((tier, i) => {
+    html += `<tr>
+      <td>${tier.label} <span class="midpoint-note">(${tier.mid} sqft)</span></td>
+      
+      <td class="editable rate" contenteditable="true" data-service="signature" data-tier="${i}">${defaultRates.signature[i].toFixed(2)}</td>
+      <td class="calculated total" id="tot-signature-${i}" style="border-right:2px solid #d1c8bb;">$0</td>
+      
+      <td class="editable rate" contenteditable="true" data-service="transition" data-tier="${i}">${defaultRates.transition[i].toFixed(2)}</td>
+      <td class="calculated total" id="tot-transition-${i}" style="border-right:2px solid #d1c8bb;">$0</td>
+      
+      <td class="editable rate" contenteditable="true" data-service="turnover" data-tier="${i}">${defaultRates.turnover[i].toFixed(2)}</td>
+      <td class="calculated total" id="tot-turnover-${i}" style="border-right:2px solid #d1c8bb;">$0</td>
+      
+      <td class="editable rate" contenteditable="true" data-service="postconst" data-tier="${i}">${defaultRates.postconst[i].toFixed(2)}</td>
+      <td class="calculated total" id="tot-postconst-${i}">$0</td>
+    </tr>`;
+  });
+  tbody.innerHTML = html;
+
+  try {
+    const settings = JSON.parse(localStorage.getItem('alignedSettings_v3'));
+    if (settings) {
+      Object.keys(settings).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = settings[id];
+      });
+    }
+  } catch(e) {}
+
+  // Auto-Calculate Base Prices in Table
+  function recalcTable() {
+    document.querySelectorAll('td.rate').forEach(td => {
+      const s = td.dataset.service;
+      const t = parseInt(td.dataset.tier);
+      const rate = parseFloat(td.textContent) || 0;
+      const mid = tiers[t].mid;
+      
+      // Calculate and round to nearest 5
+      let price = Math.round((rate * mid) / 5) * 5;
+      
+      document.getElementById(`tot-${s}-${t}`).textContent = '$' + price;
+    });
+    
+    // Update live quote builder if it's active
+    calculateQuote();
+  }
+
+  function saveSettings() {
+    const savedRates = { signature: [], transition: [], turnover: [], postconst: [] };
+    document.querySelectorAll('td.rate').forEach(td => {
+      const s = td.dataset.service;
+      const t = parseInt(td.dataset.tier);
+      savedRates[s][t] = parseFloat(td.textContent) || 0;
+    });
+    localStorage.setItem('alignedRates_v3', JSON.stringify(savedRates));
+
+    const settings = {};
+    document.querySelectorAll('td.editable:not(.rate)').forEach(td => {
+      settings[td.id] = td.textContent;
+    });
+    localStorage.setItem('alignedSettings_v3', JSON.stringify(settings));
+  }
+
+  // Setup Event Listeners for Table Editing
+  document.querySelectorAll('td.rate, .editable').forEach(el => {
+    el.addEventListener('input', () => {
+      recalcTable();
+      saveSettings();
+    });
+  });
+
+  // Quote Builder Logic
+  const serviceSelect = document.getElementById('serviceSelect');
+  const mainConfigRow = document.getElementById('mainConfigRow');
+  const sqftInput = document.getElementById('sqftExactInput');
+  const tailoredRow = document.getElementById('tailoredRow');
+  const hoursInput = document.getElementById('hoursInput');
+  const cleanersInput = document.getElementById('cleanersInput');
+  const frequencyRow = document.getElementById('frequencyRow');
+  const frequencySelect = document.getElementById('frequencySelect');
+  const volumeRow = document.getElementById('volumeRow');
+  const volumeSelect = document.getElementById('volumeSelect');
+  const signatureAddonsRow = document.getElementById('signatureAddonsRow');
+  const transitionAddonsRow = document.getElementById('transitionAddonsRow');
+  const turnoverAddonsRow = document.getElementById('turnoverAddonsRow');
+  const postconstAddonsRow = document.getElementById('postconstAddonsRow');
+  
+  const summaryContent = document.getElementById('summaryContent');
+  const grandTotal = document.getElementById('grandTotal');
+
+  serviceSelect.addEventListener('change', updateUI);
+  sqftInput.addEventListener('input', calculateQuote);
+  hoursInput.addEventListener('input', calculateQuote);
+  cleanersInput.addEventListener('input', calculateQuote);
+  frequencySelect.addEventListener('change', calculateQuote);
+  volumeSelect.addEventListener('change', calculateQuote);
+  
+  // Attach listener to all checkboxes
+  document.querySelectorAll('.addon-label input[type="checkbox"]').forEach(chk => {
+    chk.addEventListener('change', calculateQuote);
+  });
+
+  function updateUI() {
+    const s = serviceSelect.value;
+    if (['signature', 'transition', 'turnover', 'postconst'].includes(s)) {
+      mainConfigRow.style.display = 'block';
+    } else {
+      mainConfigRow.style.display = 'none';
+    }
+    tailoredRow.style.display = s === 'tailored' ? 'grid' : 'none';
+    frequencyRow.style.display = s === 'signature' ? 'block' : 'none';
+    volumeRow.style.display = s === 'turnover' ? 'block' : 'none';
+    signatureAddonsRow.style.display = s === 'signature' ? 'block' : 'none';
+    transitionAddonsRow.style.display = s === 'transition' ? 'block' : 'none';
+    turnoverAddonsRow.style.display = s === 'turnover' ? 'block' : 'none';
+    postconstAddonsRow.style.display = s === 'postconst' ? 'block' : 'none';
+    calculateQuote();
+  }
+
+  function fmt(n) { return '$' + n.toLocaleString('en-US'); }
+  function parseVal(id) { return parseFloat(document.getElementById(id).textContent.replace(/[^0-9.]/g, '')) || 0; }
+
+  function getTierIndex(sqft) {
+    if (sqft < 600) return 0;
+    if (sqft < 800) return 1;
+    if (sqft < 1000) return 2;
+    if (sqft < 1200) return 3;
+    if (sqft < 1400) return 4;
+    if (sqft < 1600) return 5;
+    if (sqft < 1800) return 6;
+    if (sqft < 2000) return 7;
+    if (sqft < 2200) return 8;
+    if (sqft < 2400) return 9;
+    if (sqft < 2600) return 10;
+    if (sqft < 2800) return 11;
+    if (sqft < 3000) return 12;
+    if (sqft < 3200) return 13;
+    if (sqft < 3400) return 14;
+    if (sqft < 3600) return 15;
+    if (sqft < 3800) return 16;
+    if (sqft < 4000) return 17;
+    if (sqft < 5000) return 18;
+    return 19;
+  }
+
+  function calculateQuote() {
+    const s = serviceSelect.value;
+    if (!s) {
+      summaryContent.innerHTML = '<div class="summary-line" style="color:var(--soft-gray);font-style:italic;">Select a service to begin...</div>';
+      grandTotal.textContent = '$0';
+      return;
+    }
+
+    let lines = [];
+    let subtotal = 0;
+    const exactSqft = parseInt(sqftInput.value) || 0;
+    const tier = getTierIndex(exactSqft);
+    const sqftLabel = `${exactSqft} sq ft`;
+
+    if (['signature', 'transition', 'turnover', 'postconst'].includes(s)) {
+      const rateUsed = parseFloat(document.querySelector(`td[data-service="${s}"][data-tier="${tier}"]`).textContent) || 0;
+      const basePrice = Math.ceil((exactSqft * rateUsed) / 10) * 10;
+      const names = { 
+        signature: 'Signature Clean', 
+        transition: 'Transition Reset', 
+        turnover: '5-Star Turnover',
+        postconst: 'Final Reveal'
+      };
+      
+      lines.push({ label: names[s], value: fmt(basePrice) });
+      lines.push({ label: `${sqftLabel} (@ $${rateUsed.toFixed(2)}/sqft)`, value: '', sub: true });
+      
+      subtotal = basePrice;
+
+      if (s === 'signature') {
+        lines.push({ label: 'Bathrooms Included', value: '', sub: true });
+        const sigAddons = [
+          { id: 'chkDishesSig', priceId: 'addon-dishes', label: 'Dish Washing' },
+          { id: 'chkFridgeSig', priceId: 'addon-fridge', label: 'Inside Fridge' },
+          { id: 'chkOvenSig', priceId: 'addon-oven', label: 'Inside Oven' },
+          { id: 'chkCabinetsSig', priceId: 'addon-cabinets', label: 'Inside Cabinets' },
+          { id: 'chkWindowsSig', priceId: 'addon-windows', label: 'Interior Windows' },
+          { id: 'chkOrgSig', priceId: 'addon-org', label: 'Organization', qtyId: 'qtyOrgSig' },
+          { id: 'chkGarageSig', priceId: 'addon-garage-sig', label: 'Garage Sweep & Mop' },
+          { id: 'chkBalconySig', priceId: 'addon-balcony', label: 'Balcony Sweeping' },
+          { id: 'chkPatioSig', priceId: 'addon-patio-sig', label: 'Patio Sweeping' }
+        ];
+        sigAddons.forEach(a => {
+          if (document.getElementById(a.id).checked) {
+            let p = parseVal(a.priceId);
+            if (a.qtyId) {
+                const q = parseInt(document.getElementById(a.qtyId).value) || 1;
+                p = p * q;
+                lines.push({ label: `${a.label} (${q} hr)`, value: fmt(p) });
+            } else {
+                lines.push({ label: a.label, value: fmt(p) });
+            }
+            subtotal += p;
+          }
+        });
+      } else if (s === 'transition') {
+        lines.push({ label: 'Bathrooms & Appliances Included', value: '', sub: true });
+        const transAddons = [
+          { id: 'chkDishesTrans', priceId: 'addon-dishes', label: 'Dish Washing' },
+          { id: 'chkGarageTrans', priceId: 'addon-garage-trans', label: 'Garage (Sweep + Cabinets)' },
+          { id: 'chkPatioTrans', priceId: 'addon-patio-trans', label: 'Patio (Sweep & Wipe)' }
+        ];
+        transAddons.forEach(a => {
+          if (document.getElementById(a.id).checked) {
+            const p = parseVal(a.priceId); lines.push({ label: a.label, value: fmt(p) }); subtotal += p;
+          }
+        });
+      } else if (s === 'turnover') {
+        lines.push({ label: 'Bathrooms & Std Patio Included', value: '', sub: true });
+        const turnAddons = [
+          { id: 'chkDishesTurn', priceId: 'addon-dishes', label: 'Dish Washing' },
+          { id: 'chkGrillTurn', priceId: 'addon-grill', label: 'Deep BBQ Grill Cleaning' },
+          { id: 'chkEmergencyTurn', priceId: 'addon-emergency', label: 'Emergency / Same-Day' }
+        ];
+        turnAddons.forEach(a => {
+          if (document.getElementById(a.id).checked) {
+            const p = parseVal(a.priceId); lines.push({ label: a.label, value: fmt(p) }); subtotal += p;
+          }
+        });
+      } else if (s === 'postconst') {
+        lines.push({ label: 'Bathrooms Included', value: '', sub: true });
+        if (document.getElementById('chkDishesPost').checked) {
+          const p = parseVal('addon-dishes'); lines.push({ label: 'Dish Washing', value: fmt(p) }); subtotal += p;
+        }
+        if (document.getElementById('chkGaragePost').checked) {
+          const p = parseVal('addon-garage-post'); lines.push({ label: 'Garage Post-Const', value: fmt(p) }); subtotal += p;
+        }
+      }
+      
+    } else if (s === 'tailored') {
+      const h = Math.max(3, parseInt(hoursInput.value) || 3);
+      const c = Math.max(1, parseInt(cleanersInput.value) || 1);
+      const rate = parseVal('tailored-rate');
+      subtotal = h * c * rate;
+      lines.push({ label: 'Tailored Focus', value: fmt(subtotal) });
+      lines.push({ label: `${c} cleaner(s) × ${h} hrs × ${fmt(rate)}/hr`, value: '', sub: true });
+    }
+
+    let total = subtotal;
+
+    let maxDiscPercent = 0;
+    let maxDiscLabel = '';
+
+    if (s === 'signature') {
+      const freq = frequencySelect.value;
+      if (freq !== 'onetime') {
+        const discText = document.getElementById(`disc-${freq}`).textContent;
+        const freqPercent = parseInt(discText.replace('%','')) / 100 || 0;
+        if (freqPercent > maxDiscPercent) {
+          maxDiscPercent = freqPercent;
+          maxDiscLabel = `Frequency Discount (${discText})`;
+        }
+      }
+    } else if (s === 'turnover') {
+      const vol = volumeSelect.value;
+      if (vol === 'partner10') {
+        if (0.10 > maxDiscPercent) {
+          maxDiscPercent = 0.10;
+          maxDiscLabel = `Host Partner Discount (10%)`;
+        }
+      } else if (vol === 'partner20') {
+        if (0.20 > maxDiscPercent) {
+          maxDiscPercent = 0.20;
+          maxDiscLabel = `Host Partner Discount (20%)`;
+        }
+      }
+    }
+
+    if (document.getElementById('chkHero').checked) {
+      const heroText = document.getElementById('disc-hero').textContent;
+      const heroPercent = parseInt(heroText.replace('%','')) / 100 || 0;
+      if (heroPercent > maxDiscPercent) {
+        maxDiscPercent = heroPercent;
+        maxDiscLabel = `Community Hero Discount (${heroText})`;
+      }
+    }
+
+    if (maxDiscPercent > 0) {
+      const discountAmt = Math.round(subtotal * maxDiscPercent);
+      lines.push({ label: maxDiscLabel, value: '−' + fmt(discountAmt), discount: true });
+      total -= discountAmt;
+    }
+
+    let html = '';
+    lines.forEach(l => {
+      let cls = 'summary-line';
+      if (l.sub) cls += ' sub';
+      if (l.discount) cls += ' discount';
+      html += `<div class="${cls}"><span>${l.label}</span><span>${l.value}</span></div>`;
+    });
+
+    summaryContent.innerHTML = html;
+    grandTotal.textContent = fmt(total);
+
+    const depositInfo = document.getElementById('depositInfo');
+    if (total > 0) {
+      depositInfo.style.display = 'block';
+      const dep = Math.round(total / 2);
+      const bal = total - dep;
+      document.getElementById('depositAmount').textContent = fmt(dep);
+      document.getElementById('balanceAmount').textContent = fmt(bal);
+    } else {
+      depositInfo.style.display = 'none';
+    }
+  }
+
+  function resetQuote() {
+    serviceSelect.value = '';
+    sqftSelect.value = '0';
+    hoursInput.value = '3';
+    cleanersInput.value = '1';
+    frequencySelect.value = 'onetime';
+    document.querySelectorAll('.addon-label input[type="checkbox"]').forEach(chk => chk.checked = false);
+    updateUI();
+  }
+
+  // Initial calculation on load
+  recalcTable();
+  resetQuote();
+</script>
+</body>
+</html>
