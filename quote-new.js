@@ -508,14 +508,16 @@ function applyPromoCode() {
     const msg = document.getElementById('promo-code-message');
     const code = input.value.trim().toUpperCase();
     
-    if (code === 'NARANJO1395') {
+    if (code === 'LAUNCH20') {
         state.promoCodeApplied = true;
-        msg.textContent = 'Promo code applied! 99% off.';
+        state.promoCodeType = 'LAUNCH20';
+        msg.textContent = 'Promo code applied! 20% off your service.';
         msg.style.color = 'var(--accent-primary)';
         msg.style.display = 'block';
         updatePrice();
     } else {
         state.promoCodeApplied = false;
+        state.promoCodeType = null;
         msg.textContent = 'Invalid promo code.';
         msg.style.color = '#dc2626';
         msg.style.display = 'block';
@@ -573,6 +575,14 @@ function updatePrice() {
         }
     }
 
+    // Promo Code Logic (Max Discount Wins - Non Stacking)
+    if (state.promoCodeApplied && state.promoCodeType === 'LAUNCH20') {
+        if (20 > maxDiscPercent) {
+            maxDiscPercent = 20;
+            maxDiscLabel = `Launch Promo (−20%)`;
+        }
+    }
+
     const discountAmt = Math.round(base * (maxDiscPercent / 100));
     const afterFreq   = base - discountAmt;
 
@@ -608,13 +618,8 @@ function updatePrice() {
 
     state.totalPrice = afterFreq + addonsTotal;
 
-    let promoDiscountAmt = 0;
-    if (state.promoCodeApplied) {
-        promoDiscountAmt = Math.round(state.totalPrice * 0.99);
-        state.totalPrice -= promoDiscountAmt;
-    }
-
-    renderPrice(base, maxDiscLabel, discountAmt, addonsTotal, state.totalPrice, promoDiscountAmt);
+    // Passing 0 for the old separate promoDiscountAmt since it's now handled in the main discount
+    renderPrice(base, maxDiscLabel, discountAmt, addonsTotal, state.totalPrice, 0);
 }
 
 function renderPrice(base, maxDiscLabel, discountAmt, addonsTotal, total, promoDiscountAmt = 0) {
