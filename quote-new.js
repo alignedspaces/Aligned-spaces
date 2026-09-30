@@ -31,10 +31,10 @@ const TIERS = [
 ];
 
 const RATES = {
-    signature: [0.225, 0.206, 0.190, 0.175, 0.161, 0.153, 0.147, 0.145, 0.143, 0.140, 0.137, 0.134, 0.130, 0.128, 0.126, 0.125, 0.124, 0.123, 0.118, 0.117],
-    transition: [0.35, 0.32, 0.30, 0.29, 0.28, 0.27, 0.265, 0.26, 0.255, 0.25, 0.245, 0.245, 0.24, 0.235, 0.23, 0.225, 0.22, 0.21, 0.20, 0.19],
-    turnover: [0.20, 0.19, 0.18, 0.17, 0.16, 0.155, 0.15, 0.14, 0.135, 0.13, 0.13, 0.13, 0.13, 0.125, 0.125, 0.12, 0.12, 0.11, 0.10, 0.10],
-    postconstruction: [0.50, 0.46, 0.42, 0.41, 0.40, 0.39, 0.385, 0.38, 0.375, 0.37, 0.36, 0.355, 0.35, 0.345, 0.34, 0.33, 0.32, 0.31, 0.29, 0.28]
+    signature: [0.25, 0.25, 0.25, 0.24, 0.24, 0.24, 0.22, 0.22, 0.22, 0.22, 0.22, 0.20, 0.20, 0.20, 0.20, 0.20, 0.19, 0.19, 0.19, 0.19],
+    transition: [0.35, 0.35, 0.35, 0.33, 0.33, 0.33, 0.31, 0.31, 0.31, 0.31, 0.29, 0.29, 0.29, 0.29, 0.29, 0.29, 0.29, 0.29, 0.29, 0.29],
+    turnover: [0.20, 0.20, 0.20, 0.20, 0.19, 0.19, 0.19, 0.19, 0.19, 0.18, 0.18, 0.18, 0.16, 0.16, 0.16, 0.15, 0.15, 0.15, 0.15, 0.15],
+    postconstruction: [0.60, 0.60, 0.60, 0.58, 0.58, 0.56, 0.56, 0.54, 0.52, 0.52, 0.50, 0.50, 0.48, 0.48, 0.47, 0.47, 0.46, 0.46, 0.45, 0.45]
 };
 
 function roundPrestige(num) {
@@ -709,13 +709,13 @@ function updatePrice() {
 
     // Add-ons — quantity counters (Fridge / Oven / Org / Windows / Pet)
     const counters = [
-        { id: 'fridge', label: 'Inside Fridge',           price: 60 },
+        { id: 'fridge', label: 'Inside Fridge',           price: 50 },
         { id: 'oven',   label: 'Inside Oven',             price: 60 },
         { id: 'windows',label: 'Windows (Inside Only)',   price: 10 },
         { id: 'windows_out',label: 'Windows (Inside & Out)', price: 15 },
         { id: 'windows_large',label: 'Large Windows (Inside)', price: 15 },
         { id: 'windows_large_out',label: 'Large Windows (In & Out)', price: 30 },
-        { id: 'org',    label: 'Organization (hr)',       price: 40 },
+        { id: 'org',    label: 'Organization (hr)',       price: 35 },
         { id: 'pet',    label: 'Pet Hair Fee',            price: 25 }
     ];
     counters.forEach(c => {
@@ -991,6 +991,7 @@ async function showBookingForm() {
             mode: 'payment',
             amount: renderAmount,
             currency: 'usd',
+            locale: 'en',
             captureMethod: 'manual',
             paymentMethodTypes: ['card'],
             appearance: { theme: 'stripe' }
@@ -1175,6 +1176,12 @@ document.addEventListener('DOMContentLoaded', () => {
         inline:     true,
         minDate:    new Date(new Date().setDate(new Date().getDate() + 2)),
         dateFormat: 'F j, Y',
+        disable: [
+            function(date) {
+                // Disable Thursday (4), Friday (5), and Saturday (6)
+                return (date.getDay() === 4 || date.getDay() === 5 || date.getDay() === 6);
+            }
+        ],
         onChange(selectedDates, dateStr) {
             state.selectedDate = dateStr;
         }

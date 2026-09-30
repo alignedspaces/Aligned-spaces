@@ -478,6 +478,8 @@
 .addon-info {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-width: 0;
 }
 
 .addon-info strong {
@@ -776,6 +778,7 @@
     padding: 0.3rem 0.5rem;
     border-radius: 30px;
     border: 1px solid rgba(44,43,41,0.1);
+    flex-shrink: 0;
 }
 
 .addon-btn {
