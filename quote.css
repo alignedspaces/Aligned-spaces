@@ -952,3 +952,36 @@
         grid-template-columns: 1fr;
     }
 }
+@media (max-width: 900px) {
+    .mobile-floating-price {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: #1e293b;
+        color: white;
+        z-index: 1000;
+        padding: 15px 20px;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+        display: none; /* Controlled by JS */
+    }
+    .mfp-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .mfp-price strong {
+        font-size: 1.5rem;
+        color: var(--accent-primary);
+    }
+    .mfp-btn {
+        margin: 0;
+        padding: 12px 24px;
+        font-size: 1rem;
+    }
+    body {
+        padding-bottom: 90px; /* Prevent content from being hidden behind the bar */
+    }
+}

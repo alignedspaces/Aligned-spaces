@@ -31,10 +31,10 @@ const TIERS = [
 ];
 
 const RATES = {
-    signature: [0.4, 0.38, 0.36, 0.34, 0.32, 0.3, 0.28, 0.26, 0.24, 0.22, 0.21, 0.21, 0.2, 0.2, 0.2, 0.19, 0.19, 0.19, 0.19, 0.19],
-    transition: [0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.38, 0.37, 0.36, 0.35, 0.34, 0.33, 0.32, 0.32, 0.32, 0.32, 0.32],
-    turnover: [0.43, 0.42, 0.42, 0.41, 0.41, 0.4, 0.39, 0.38, 0.37, 0.36, 0.35, 0.34, 0.33, 0.32, 0.31, 0.3, 0.31, 0.3, 0.3, 0.3],
-    postconstruction: [0.9, 0.87, 0.82, 0.77, 0.73, 0.69, 0.65, 0.62, 0.59, 0.56, 0.54, 0.51, 0.49, 0.47, 0.45, 0.43, 0.41, 0.4, 0.38, 0.36]
+    signature: [0.225, 0.206, 0.190, 0.175, 0.161, 0.153, 0.147, 0.145, 0.143, 0.140, 0.137, 0.134, 0.130, 0.128, 0.126, 0.125, 0.124, 0.123, 0.118, 0.117],
+    transition: [0.35, 0.32, 0.30, 0.29, 0.28, 0.27, 0.265, 0.26, 0.255, 0.25, 0.245, 0.245, 0.24, 0.235, 0.23, 0.225, 0.22, 0.21, 0.20, 0.19],
+    turnover: [0.20, 0.19, 0.18, 0.17, 0.16, 0.155, 0.15, 0.14, 0.135, 0.13, 0.13, 0.13, 0.13, 0.125, 0.125, 0.12, 0.12, 0.11, 0.10, 0.10],
+    postconstruction: [0.50, 0.46, 0.42, 0.41, 0.40, 0.39, 0.385, 0.38, 0.375, 0.37, 0.36, 0.355, 0.35, 0.345, 0.34, 0.33, 0.32, 0.31, 0.29, 0.28]
 };
 
 function roundPrestige(num) {
@@ -106,7 +106,7 @@ const PRICING = {
         usesSqft: true,
     },
     tailored: {
-        ratePerHour: 60,   // Updated from JSON
+        ratePerHour: 45,
         getBase(hours, cleaners = 1) {
             return (hours || 3) * (cleaners || 1) * this.ratePerHour;
         },
@@ -117,9 +117,9 @@ const PRICING = {
 
 const FREQUENCY_DISCOUNTS = {
     onetime:  0,
-    monthly:  5,   // Updated from JSON
-    biweekly: 10,  // Updated from JSON
-    weekly:   20   // Updated from JSON
+    monthly:  10,
+    biweekly: 15,
+    weekly:   20
 };
 
 const SERVICE_LABELS = {
@@ -137,6 +137,7 @@ const SERVICE_LABELS = {
 let state = {
     service:    null,
     exactSqft:  null,
+    conditionMultiplier: 1.0,
     // Hourly (Tailored)
     hours:      3,
     cleaners:   1,
@@ -145,7 +146,7 @@ let state = {
     // Frequency & pricing
     frequency:  null,
     addons:     [],
-    addonQuantities: { fridge: 0, oven: 0, windows: 0, org: 0, pet: 0 },
+    addonQuantities: { fridge: 0, oven: 0, windows: 0, windows_out: 0, windows_large: 0, windows_large_out: 0, org: 0, pet: 0 },
     basePrice:  0,
     totalPrice: 0,
     promoCodeApplied: false,
@@ -192,6 +193,42 @@ function goToStep(num) {
     if (num === 2) setupStep2();
     if (num === 3) setupStep3();
     if (num === 4) setupStep4();
+    if (num === 5) setupStep5();
+    
+    // Manage Mobile Floating Bar visibility
+    const floatingBar = document.getElementById('mobile-floating-bar');
+    if (floatingBar) {
+        // Show only on steps 2, 3, and 5. Hide on 1 (Service), 4 (Lead Capture), 6 (Booking), 7 (Confirm)
+        if (window.innerWidth <= 900 && (num === 2 || num === 3 || num === 5)) {
+            floatingBar.style.display = 'block';
+        } else {
+            floatingBar.style.display = 'none';
+        }
+        
+        // Ensure the button resets its opacity when moving to other steps
+        const mobileBtn = document.querySelector('.mfp-btn');
+        if (mobileBtn && num !== 2) {
+            mobileBtn.disabled = false;
+            mobileBtn.style.opacity = '1';
+        }
+    }
+}
+
+function floatingBarNext() {
+    const activeStep = document.querySelector('.step-panel.active');
+    if (!activeStep) return;
+    const stepId = activeStep.id;
+    
+    if (stepId === 'step-2') {
+        // Find and click the native next button so any inline validation triggers
+        const nextBtn = document.getElementById('btn-next-2');
+        if (nextBtn) nextBtn.click();
+        else goToStep(3);
+    } else if (stepId === 'step-3') {
+        goToStep(4);
+    } else if (stepId === 'step-5') {
+        showBookingForm();
+    }
 }
 
 // ============================================================
@@ -219,16 +256,24 @@ function setupStep2() {
     const configSqft  = document.getElementById('config-sqft');
     const configHours = document.getElementById('config-hours');
     const configRooms = document.getElementById('config-rooms');
+    const configCond  = document.getElementById('config-condition');
     const subtitle    = document.getElementById('step2-subtitle');
 
     // Hide all config panels first
     configSqft.style.display  = 'none';
     configHours.style.display = 'none';
     if (configRooms) configRooms.style.display = 'none';
+    if (configCond) configCond.style.display = 'none';
 
     if (PRICING[svc]?.usesSqft) {
         configSqft.style.display = 'block';
         if (configRooms) configRooms.style.display = 'block';
+        
+        // Show condition question for Signature and Transition
+        if (configCond && (svc === 'signature' || svc === 'transition')) {
+            configCond.style.display = 'block';
+        }
+        
         subtitle.textContent = 'Enter the exact square footage and number of rooms.';
         
         const inputEl = document.getElementById('sqft-input');
@@ -239,8 +284,10 @@ function setupStep2() {
                 let val = parseInt(e.target.value);
                 if (!isNaN(val) && val > 0) {
                     state.exactSqft = val;
-                    updatePrice();
+                } else {
+                    state.exactSqft = null;
                 }
+                updatePrice();
             });
         }
     } else if (svc === 'tailored') {
@@ -335,8 +382,15 @@ function setupStep3() {
     updatePrice();
 }
 
+function selectCondition(el) {
+    document.querySelectorAll('.condition-option').forEach(o => o.classList.remove('active'));
+    el.classList.add('active');
+    state.conditionMultiplier = parseFloat(el.dataset.condition) || 1.0;
+    updatePrice();
+}
+
 function selectFreq(el) {
-    document.querySelectorAll('.freq-option').forEach(o => o.classList.remove('selected'));
+    document.querySelectorAll('.freq-option:not(.condition-option)').forEach(o => o.classList.remove('selected'));
     el.classList.add('selected');
     state.frequency = el.dataset.freq;
     document.getElementById('btn-next-3').disabled = false;
@@ -344,6 +398,32 @@ function selectFreq(el) {
 }
 
 function setupStep4() {
+    // Focus the name input automatically for better UX
+    setTimeout(() => {
+        const nameInput = document.getElementById('lead-name');
+        if (nameInput) nameInput.focus();
+    }, 50);
+}
+
+function validateLeadCapture() {
+    const nameInput = document.getElementById('lead-name').value.trim();
+    const emailInput = document.getElementById('lead-email').value.trim();
+    const errorMsg = document.getElementById('lead-error-msg');
+    
+    // Basic email validation regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (nameInput.length < 2 || !emailRegex.test(emailInput)) {
+        errorMsg.style.display = 'block';
+    } else {
+        errorMsg.style.display = 'none';
+        state.leadName = nameInput;
+        state.leadEmail = emailInput;
+        goToStep(5);
+    }
+}
+
+function setupStep5() {
     const isTransition = (state.service === 'transition');
     const isTurnover = (state.service === 'turnover');
     const isPostconst = (state.service === 'postconstruction');
@@ -428,20 +508,23 @@ function setupStep4() {
     if (isTransition) cabLabel = 'Included in Transition Reset';
     else if (isTurnover) cabLabel = 'Included in 5-Star Turnover';
     else if (isPostconst) cabLabel = 'Included in Post-Construction';
-    setCheckboxAddonIncluded('cabinets', cabIncluded, 40, cabLabel);
+    setCheckboxAddonIncluded('cabinets', cabIncluded, 50, cabLabel);
 
     // Balcony (Included in Turnover & Post-Construction)
     const balconyIncluded = isTurnover || isPostconst;
     let balconyLabel = 'Included';
     if (isTurnover) balconyLabel = 'Included in 5-Star Turnover';
     else if (isPostconst) balconyLabel = 'Included in Post-Construction';
-    setCheckboxAddonIncluded('balcony', balconyIncluded, 30, balconyLabel);
+    setCheckboxAddonIncluded('balcony', balconyIncluded, 40, balconyLabel);
 
     // Patio (Included in Turnover)
-    setCheckboxAddonIncluded('patio', isTurnover, 70, 'Included in 5-Star Turnover'); 
+    setCheckboxAddonIncluded('patio', isTurnover, 80, 'Included in 5-Star Turnover'); 
 
     // Windows (Included in Post-Construction)
-    setQtyAddonIncluded('addon-card-windows', isPostconst, 'Included in Post-Construction', '$15');
+    setQtyAddonIncluded('addon-card-windows', isPostconst, 'Included in Post-Construction', '$8');
+    setQtyAddonIncluded('addon-card-windows_out', isPostconst, 'Included in Post-Construction', '$15');
+    setQtyAddonIncluded('addon-card-windows_large', isPostconst, 'Included in Post-Construction', '$15');
+    setQtyAddonIncluded('addon-card-windows_large_out', isPostconst, 'Included in Post-Construction', '$30');
     
     // Dynamic Pricing for Garage and Patio (when NOT included)
     const chkGarage = document.getElementById('chk-garage');
@@ -457,8 +540,8 @@ function setupStep4() {
             chkGarage.dataset.price = '100';
             priceGarage.textContent = '+$100';
         } else {
-            chkGarage.dataset.price = '70';
-            priceGarage.textContent = '+$70';
+            chkGarage.dataset.price = '60';
+            priceGarage.textContent = '+$60';
         }
     }
 
@@ -529,6 +612,30 @@ function updatePrice() {
     const service = state.service;
     if (!service) return;
 
+    // Mansion check
+    const isMansion = (state.exactSqft >= 4000);
+    const mansionWarning = document.getElementById('mansion-warning');
+    const nextBtn2 = document.getElementById('btn-next-2');
+    
+    if (mansionWarning) {
+        mansionWarning.style.display = (isMansion && PRICING[service]?.usesSqft) ? 'block' : 'none';
+    }
+    
+    if (nextBtn2) {
+        if (PRICING[service]?.usesSqft) {
+            nextBtn2.disabled = (isMansion || !state.exactSqft || state.exactSqft < 100);
+        } else {
+            nextBtn2.disabled = false;
+        }
+        
+        // Sync the mobile floating bar button if we are on step 2
+        const mobileBtn = document.querySelector('.mfp-btn');
+        if (mobileBtn && document.getElementById('step-2').classList.contains('active')) {
+            mobileBtn.disabled = nextBtn2.disabled;
+            mobileBtn.style.opacity = nextBtn2.disabled ? '0.5' : '1';
+        }
+    }
+
     // Reset add-on disabled state
     document.querySelectorAll('.addon-card input').forEach(input => {
         input.disabled = false;
@@ -540,14 +647,19 @@ function updatePrice() {
     if (notice) notice.style.display = (service === 'signature') ? 'block' : 'none';
 
     const pricing = PRICING[service];
-    let base = 0;
+    let pureBase = 0;
 
     if (pricing.usesSqft) {
         let minSqft = (service === 'turnover') ? 500 : 600;
         let calcSqft = Math.max(minSqft, state.exactSqft || 0);
-        base = pricing.getBase(calcSqft);
+        pureBase = pricing.getBase(calcSqft);
     } else if (service === 'tailored') {
-        base = pricing.getBase(state.hours, state.cleaners);
+        pureBase = pricing.getBase(state.hours, state.cleaners);
+    }
+
+    let base = pureBase;
+    if (service === 'signature' || service === 'transition') {
+        base = roundPrestige(pureBase * state.conditionMultiplier);
     }
 
     state.basePrice = base;
@@ -555,6 +667,8 @@ function updatePrice() {
     // Discounts
     let maxDiscPercent = 0;
     let maxDiscLabel = '';
+
+    let isRecurringSignature = (service === 'signature' && state.frequency && state.frequency !== 'onetime');
 
     // Frequency
     if (state.frequency && state.frequency !== 'onetime') {
@@ -583,9 +697,6 @@ function updatePrice() {
         }
     }
 
-    const discountAmt = Math.round(base * (maxDiscPercent / 100));
-    const afterFreq   = base - discountAmt;
-
     // Add-ons — checkboxes
     let addonsTotal = 0;
     state.addons = [];
@@ -598,10 +709,13 @@ function updatePrice() {
 
     // Add-ons — quantity counters (Fridge / Oven / Org / Windows / Pet)
     const counters = [
-        { id: 'fridge', label: 'Inside Fridge',           price: 50 },
-        { id: 'oven',   label: 'Inside Oven',             price: 50 },
-        { id: 'windows',label: 'Interior Windows',        price: 15 },
-        { id: 'org',    label: 'Organization (hr)',       price: 45 },
+        { id: 'fridge', label: 'Inside Fridge',           price: 60 },
+        { id: 'oven',   label: 'Inside Oven',             price: 60 },
+        { id: 'windows',label: 'Windows (Inside Only)',   price: 10 },
+        { id: 'windows_out',label: 'Windows (Inside & Out)', price: 15 },
+        { id: 'windows_large',label: 'Large Windows (Inside)', price: 15 },
+        { id: 'windows_large_out',label: 'Large Windows (In & Out)', price: 30 },
+        { id: 'org',    label: 'Organization (hr)',       price: 40 },
         { id: 'pet',    label: 'Pet Hair Fee',            price: 25 }
     ];
     counters.forEach(c => {
@@ -616,13 +730,40 @@ function updatePrice() {
         }
     });
 
-    state.totalPrice = afterFreq + addonsTotal;
+    let discountAmt = 0;
+    let recurringTotal = 0;
 
-    // Passing 0 for the old separate promoDiscountAmt since it's now handled in the main discount
-    renderPrice(base, maxDiscLabel, discountAmt, addonsTotal, state.totalPrice, 0);
+    if (isRecurringSignature) {
+        // First Visit logic: doesn't get frequency discount, only gets Promo/Hero if checked
+        let firstVisitDiscPercent = 0;
+        let firstVisitDiscLabel = '';
+        
+        if (state.promoCodeApplied && state.promoCodeType === 'LAUNCH20') {
+            firstVisitDiscPercent = 20;
+            firstVisitDiscLabel = `Launch Promo (−20%)`;
+        } else if (chkHero && chkHero.checked) {
+            firstVisitDiscPercent = 10;
+            firstVisitDiscLabel = `Community Hero (−10%)`;
+        }
+        
+        discountAmt = Math.round(base * (firstVisitDiscPercent / 100));
+        maxDiscLabel = firstVisitDiscLabel; 
+        
+        state.totalPrice = base + addonsTotal - discountAmt;
+        
+        // Recurring Total uses the PURE BASE (1.0x condition)
+        let freqPct = FREQUENCY_DISCOUNTS[state.frequency] || 0;
+        let recurringDiscountAmt = Math.round(pureBase * (freqPct / 100));
+        recurringTotal = pureBase + addonsTotal - recurringDiscountAmt;
+    } else {
+        discountAmt = Math.round(base * (maxDiscPercent / 100));
+        state.totalPrice = base + addonsTotal - discountAmt;
+    }
+
+    renderPrice(base, maxDiscLabel, discountAmt, addonsTotal, state.totalPrice, isRecurringSignature, recurringTotal, pureBase);
 }
 
-function renderPrice(base, maxDiscLabel, discountAmt, addonsTotal, total, promoDiscountAmt = 0) {
+function renderPrice(base, maxDiscLabel, discountAmt, addonsTotal, total, isRecurringSignature = false, recurringTotal = 0, pureBase = 0) {
     const display    = document.getElementById('price-display');
     const breakdown  = document.getElementById('price-breakdown');
     const note       = document.getElementById('price-note');
@@ -667,40 +808,81 @@ function renderPrice(base, maxDiscLabel, discountAmt, addonsTotal, total, promoD
     }
 
     // ── Build breakdown HTML ─────────────────────────────────
-    let html = '';
-
-    html += `<div class="breakdown-item">
-        <span>${SERVICE_LABELS[state.service]}<br><small style="opacity:.6">${configDesc}</small></span>
-        <span>$${base.toLocaleString()}</span>
-    </div>`;
-
-    if (discountAmt > 0) {
-        html += `<div class="breakdown-item discount">
-            <span>${maxDiscLabel || 'Discount'}</span>
-            <span>−$${discountAmt.toLocaleString()}</span>
+    if (isRecurringSignature) {
+        // Initial Deep Clean
+        html = `<div class="breakdown-item" style="margin-bottom: 0.25rem;">
+            <span>Initial Deep Clean<br><small style="opacity:.6">${configDesc}</small></span>
+            <span>$${base.toLocaleString()}</span>
         </div>`;
-    }
-
-    if (state.addons.length > 0) {
-        state.addons.forEach(addon => {
-            html += `<div class="breakdown-item">
-                <span>${addon.label}</span>
-                <span>+$${addon.price.toLocaleString()}</span>
+        
+        if (state.addons.length > 0) {
+            state.addons.forEach(addon => {
+                html += `<div class="breakdown-item">
+                    <span>${addon.label}</span>
+                    <span>+$${addon.price.toLocaleString()}</span>
+                </div>`;
+            });
+        }
+        
+        html += `<div class="breakdown-item" style="border-top:1px solid rgba(253,251,247,0.2); margin-top:.5rem; padding-top:.5rem;">
+            <strong>First Visit Total</strong>
+            <strong>$${total.toLocaleString()}</strong>
+        </div>`;
+        
+        // Recurring Maintenance
+        html += `<div class="breakdown-item" style="margin-top: 1.5rem; margin-bottom: 0.25rem;">
+            <span>Recurring ${SERVICE_LABELS[state.service]}<br><small style="opacity:.6">${configDesc}</small></span>
+            <span>$${pureBase.toLocaleString()}</span>
+        </div>`;
+        
+        if (discountAmt > 0) {
+            html += `<div class="breakdown-item discount">
+                <span>${maxDiscLabel || 'Discount'}</span>
+                <span>−$${discountAmt.toLocaleString()}</span>
             </div>`;
-        });
-    }
+        }
+        
+        if (state.addons.length > 0) {
+            state.addons.forEach(addon => {
+                html += `<div class="breakdown-item">
+                    <span>${addon.label}</span>
+                    <span>+$${addon.price.toLocaleString()}</span>
+                </div>`;
+            });
+        }
+        
+        html += `<div class="breakdown-item" style="border-top:1px dashed rgba(253,251,247,0.2); margin-top:.5rem; padding-top:.5rem; color: var(--gold);">
+            <strong>Recurring Visits</strong>
+            <strong>$${recurringTotal.toLocaleString()}</strong>
+        </div>`;
+        
+    } else {
+        html += `<div class="breakdown-item">
+            <span>${SERVICE_LABELS[state.service]}<br><small style="opacity:.6">${configDesc}</small></span>
+            <span>$${base.toLocaleString()}</span>
+        </div>`;
 
-    if (promoDiscountAmt > 0) {
-        html += `<div class="breakdown-item discount" style="color: var(--accent-primary); font-weight: 600;">
-            <span>Promo Code (95% Off)</span>
-            <span>−$${promoDiscountAmt.toLocaleString()}</span>
+        if (discountAmt > 0) {
+            html += `<div class="breakdown-item discount">
+                <span>${maxDiscLabel || 'Discount'}</span>
+                <span>−$${discountAmt.toLocaleString()}</span>
+            </div>`;
+        }
+
+        if (state.addons.length > 0) {
+            state.addons.forEach(addon => {
+                html += `<div class="breakdown-item">
+                    <span>${addon.label}</span>
+                    <span>+$${addon.price.toLocaleString()}</span>
+                </div>`;
+            });
+        }
+
+        html += `<div class="breakdown-item" style="border-top:1px solid rgba(253,251,247,0.2); margin-top:.5rem; padding-top:.5rem;">
+            <strong>Total Estimate</strong>
+            <strong>$${total.toLocaleString()}</strong>
         </div>`;
     }
-
-    html += `<div class="breakdown-item" style="border-top:1px solid rgba(253,251,247,0.2); margin-top:.5rem; padding-top:.5rem;">
-        <strong>Total Estimate</strong>
-        <strong>$${total.toLocaleString()}</strong>
-    </div>`;
 
     if (total > 0) {
         let deposit = total * 0.20;
@@ -708,9 +890,21 @@ function renderPrice(base, maxDiscLabel, discountAmt, addonsTotal, total, promoD
             <span>20% Deposit to secure booking</span>
             <span style="font-weight: 600; color: var(--text-primary);">$${deposit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} today</span>
         </div>`;
+        
+        if (state.service === 'signature' || state.service === 'transition') {
+            html += `<div style="font-size: 0.75rem; color: var(--soft-gray); font-style: italic; margin-top: 1.5rem; line-height: 1.4; padding: 0.75rem; background: rgba(0,0,0,0.15); border-radius: 6px; border-left: 2px solid var(--accent-primary);">
+                *This estimate assumes the home condition was selected accurately. If our team arrives and determines the home requires a Heavy Duty deep clean that significantly exceeds normal cleaning time, we will pause and request your approval for any necessary price adjustments before proceeding.
+            </div>`;
+        }
     }
 
     breakdown.innerHTML = html;
+    
+    // Update Mobile Floating Bar Total
+    const mobileTotalEl = document.getElementById('mobile-floating-total');
+    if (mobileTotalEl) {
+        mobileTotalEl.innerText = `$${state.totalPrice.toLocaleString()}`;
+    }
 }
 
 // ============================================================
@@ -718,7 +912,13 @@ function renderPrice(base, maxDiscLabel, discountAmt, addonsTotal, total, promoD
 // ============================================================
 
 async function showBookingForm() {
-    goToStep(5);
+    goToStep(6);
+
+    // Pre-fill lead capture info
+    const bName = document.getElementById('b-name');
+    const bEmail = document.getElementById('b-email');
+    if (bName) bName.value = state.leadName || '';
+    if (bEmail) bEmail.value = state.leadEmail || '';
 
     // Dynamic time slots for longer services
     const morningSlot = document.querySelector('.time-slot[data-time="9-10am"]');
@@ -993,7 +1193,11 @@ function selectTimeSlot(el) {
 }
 
 function changeAddonQty(id, delta) {
-    state.addonQuantities[id] = Math.max(0, Math.min(5, (state.addonQuantities[id] || 0) + delta));
+    let max = 20; // Default max for most addons like windows and pets
+    if (id === 'org') max = 6;
+    if (id === 'windows_large' || id === 'windows_large_out') max = 10;
+    
+    state.addonQuantities[id] = Math.max(0, Math.min(max, (state.addonQuantities[id] || 0) + delta));
     document.getElementById(`qty-${id}`).textContent = state.addonQuantities[id];
     updatePrice();
 }

@@ -97,7 +97,12 @@
                 <div class="progress-line"></div>
                 <div class="progress-step" data-step="4">
                     <div class="ps-dot">4</div>
-                    <span>Add-Ons</span>
+                    <span>Details</span>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step" data-step="5">
+                    <div class="ps-dot">5</div>
+                    <span>Quote</span>
                 </div>
             </div>
 
@@ -143,7 +148,7 @@
                         <div class="so-icon">🎯</div>
                         <div class="so-text">
                             <strong>The Tailored Focus</strong>
-                            <span>Personalized Hourly · $60/hr</span>
+                            <span>Personalized Hourly · $45/hr</span>
                         </div>
                         <div class="so-check">✓</div>
                     </div>
@@ -170,6 +175,35 @@
                         <input type="number" id="sqft-input" class="sqft-input" placeholder="e.g. 1500" value="" min="100" max="10000" style="width: 100%; padding: 16px; font-size: 1.1rem; border: 2px solid var(--sand); border-radius: 8px; background-color: #fff; color: var(--text-primary); font-family: inherit; margin-top: 8px;">
                         <div style="font-size: 0.85rem; margin-top: 8px; text-align: right;">
                             <a href="https://www.zillow.com/" target="_blank" style="color: var(--accent-primary); text-decoration: none;">Don't know your sq ft? Search your address on Zillow →</a>
+                        </div>
+                        <!-- Mansion Warning -->
+                        <div id="mansion-warning" style="display:none; margin-top: 15px; padding: 15px; background: #fdf5e6; border-left: 4px solid var(--accent-primary); color: #5a4a35; border-radius: 4px; font-size: 0.95rem;">
+                            <strong>Wow, you have a beautiful, large home! Congratulations on all your hard work. 🥂</strong><br>
+                            For homes 4,000 sq ft or larger, we provide a custom VIP Walkthrough to ensure we give you the most accurate and fair quote. Please schedule your free walkthrough below.
+                            <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                                <a href="tel:+17023502385" style="display: inline-block; padding: 10px 15px; background: var(--text-primary); color: white; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 0.9rem;">📞 (702) 350-2385</a>
+                                <a href="mailto:hello@alignedspaces.us?subject=VIP%20Walkthrough%20Request&body=Hi,%20I%20would%20like%20to%20schedule%20a%20VIP%20walkthrough%20for%20my%20home." style="display: inline-block; padding: 10px 15px; background: white; color: var(--text-primary); border: 1px solid var(--text-primary); text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 0.9rem;">✉️ Email Us</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Condition (For Deep Clean pricing) -->
+                <div id="config-condition" style="display:none; margin-top: 2rem;">
+                    <label class="config-label">When was the home last professionally cleaned?</label>
+                    <div class="frequency-selector" id="condition-options">
+                        <div class="freq-option condition-option active" data-condition="1.0" onclick="selectCondition(this)">
+                            <strong>Within the last 4 weeks</strong>
+                            <span>Well maintained</span>
+                            <div class="freq-badge discount" style="background:#f1f8f6; color:var(--success);">Standard Rate</div>
+                        </div>
+                        <div class="freq-option condition-option" data-condition="1.25" onclick="selectCondition(this)">
+                            <strong>1 - 3 months ago</strong>
+                            <span>Needs some TLC</span>
+                        </div>
+                        <div class="freq-option condition-option" data-condition="1.5" onclick="selectCondition(this)">
+                            <strong>More than 3 months ago</strong>
+                            <span>Heavy Duty / Deep Clean</span>
                         </div>
                     </div>
                 </div>
@@ -222,7 +256,7 @@
 
                 <div class="step-nav">
                     <button class="btn-back" onclick="goToStep(1)">← Back</button>
-                    <button class="btn-next" onclick="goToStep(3)">Continue →</button>
+                    <button class="btn-next" id="btn-next-2" onclick="goToStep(3)">Continue →</button>
                 </div>
             </div>
 
@@ -237,15 +271,15 @@
                         <span>No commitment</span>
                         <div class="freq-badge">Standard Rate</div>
                     </div>
-                    <div class="freq-option" data-freq="monthly" data-discount="5" onclick="selectFreq(this)">
+                    <div class="freq-option" data-freq="monthly" data-discount="10" onclick="selectFreq(this)">
                         <strong>Monthly</strong>
                         <span>1× per month</span>
-                        <div class="freq-badge discount">Save 5%</div>
+                        <div class="freq-badge discount">Save 10%</div>
                     </div>
-                    <div class="freq-option" data-freq="biweekly" data-discount="10" onclick="selectFreq(this)">
+                    <div class="freq-option" data-freq="biweekly" data-discount="15" onclick="selectFreq(this)">
                         <strong>Bi-Weekly</strong>
                         <span>2× per month</span>
-                        <div class="freq-badge discount">Save 10%</div>
+                        <div class="freq-badge discount">Save 15%</div>
                     </div>
                     <div class="freq-option" data-freq="weekly" data-discount="20" onclick="selectFreq(this)">
                         <strong>Weekly</strong>
@@ -283,8 +317,30 @@
                 </div>
             </div>
 
-            <!-- STEP 4: Add-Ons -->
+            <!-- STEP 4: Lead Capture -->
             <div class="step-panel" id="step-4">
+                <h2 class="step-title">Where should we send your quote?</h2>
+                <p class="step-subtitle">We're almost done! Please provide your name and email to reveal your instant price.</p>
+                
+                <div class="config-group" style="margin-top: 2rem;">
+                    <label class="config-label">Full Name</label>
+                    <input type="text" id="lead-name" placeholder="e.g. Sarah Smith" style="width: 100%; padding: 16px; font-size: 1.1rem; border: 2px solid var(--sand); border-radius: 8px; background-color: #fff; color: var(--text-primary); font-family: inherit; margin-top: 8px;" required>
+                </div>
+                
+                <div class="config-group" style="margin-top: 1.5rem;">
+                    <label class="config-label">Email Address</label>
+                    <input type="email" id="lead-email" placeholder="e.g. sarah@example.com" style="width: 100%; padding: 16px; font-size: 1.1rem; border: 2px solid var(--sand); border-radius: 8px; background-color: #fff; color: var(--text-primary); font-family: inherit; margin-top: 8px;" required>
+                    <p id="lead-error-msg" style="color: #dc2626; display: none; margin-top: 8px; font-size: 0.9rem;">Please provide a valid name and email address.</p>
+                </div>
+                
+                <div class="step-nav">
+                    <button class="btn-back" onclick="goToStep(3)">← Back</button>
+                    <button class="btn-next" onclick="validateLeadCapture()">See My Quote →</button>
+                </div>
+            </div>
+
+            <!-- STEP 5: Add-Ons -->
+            <div class="step-panel" id="step-5">
                 <h2 class="step-title">Any extras? <span style="font-style:italic; font-weight:300;">(optional)</span>
                 </h2>
                 <p class="step-subtitle">Customize your service with targeted add-ons.</p>
@@ -306,7 +362,7 @@
                         <div class="addon-icon">❄️</div>
                         <div class="addon-info">
                             <strong>Inside Fridge</strong>
-                            <span>$50 per unit</span>
+                            <span>$60 per unit</span>
                         </div>
                         <div class="addon-counter">
                             <button type="button" class="addon-btn" onclick="changeAddonQty('fridge', -1)">−</button>
@@ -320,7 +376,7 @@
                         <div class="addon-icon">🔥</div>
                         <div class="addon-info">
                             <strong>Inside Oven</strong>
-                            <span>$50 per unit</span>
+                            <span>$60 per unit</span>
                         </div>
                         <div class="addon-counter">
                             <button type="button" class="addon-btn" onclick="changeAddonQty('oven', -1)">−</button>
@@ -342,12 +398,12 @@
                     </label>
                     
                     <label class="addon-card">
-                        <input type="checkbox" class="addon-checkbox" data-price="25" data-label="Dish Washing"
+                        <input type="checkbox" class="addon-checkbox" data-price="30" data-label="Dish Washing"
                             data-id="dishes" onchange="updatePrice()">
                         <div class="addon-icon">🍽️</div>
                         <div class="addon-info">
                             <strong>Dish Washing</strong>
-                            <span>+$25</span>
+                            <span>+$30</span>
                         </div>
                     </label>
                     
@@ -357,7 +413,7 @@
                         <div class="addon-info">
                             <strong>Organization</strong>
                             <span style="font-size: 0.65rem; opacity: 0.7;">1 Organizer · Up to 5 hours</span>
-                            <span>$45/hr</span>
+                            <span>$40/hr</span>
                         </div>
                         <div class="addon-counter">
                             <button type="button" class="addon-btn" onclick="changeAddonQty('org', -1)">−</button>
@@ -370,14 +426,59 @@
                     <div class="addon-card" id="addon-card-windows">
                         <div class="addon-icon">🪟</div>
                         <div class="addon-info">
-                            <strong>Interior Windows</strong>
+                            <strong>Windows (Inside Only)</strong>
                             <span style="font-size: 0.65rem; opacity: 0.7;">*Standard windows only</span>
-                            <span>$15</span>
+                            <span>$10</span>
                         </div>
                         <div class="addon-counter">
                             <button type="button" class="addon-btn" onclick="changeAddonQty('windows', -1)">−</button>
                             <span class="addon-qty" id="qty-windows">0</span>
                             <button type="button" class="addon-btn" onclick="changeAddonQty('windows', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Interior & Exterior Windows with Quantity -->
+                    <div class="addon-card" id="addon-card-windows_out">
+                        <div class="addon-icon">✨</div>
+                        <div class="addon-info">
+                            <strong>Windows (Inside & Out)</strong>
+                            <span style="font-size: 0.65rem; opacity: 0.7;">*1st floor standard only</span>
+                            <span>$15</span>
+                        </div>
+                        <div class="addon-counter">
+                            <button type="button" class="addon-btn" onclick="changeAddonQty('windows_out', -1)">−</button>
+                            <span class="addon-qty" id="qty-windows_out">0</span>
+                            <button type="button" class="addon-btn" onclick="changeAddonQty('windows_out', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Large Windows (Inside Only) -->
+                    <div class="addon-card" id="addon-card-windows_large">
+                        <div class="addon-icon">🚪</div>
+                        <div class="addon-info">
+                            <strong>Large Windows (Inside)</strong>
+                            <span style="font-size: 0.65rem; opacity: 0.7;">*Floor-to-ceiling / sliding</span>
+                            <span>$15</span>
+                        </div>
+                        <div class="addon-counter">
+                            <button type="button" class="addon-btn" onclick="changeAddonQty('windows_large', -1)">−</button>
+                            <span class="addon-qty" id="qty-windows_large">0</span>
+                            <button type="button" class="addon-btn" onclick="changeAddonQty('windows_large', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Large Windows (Inside & Out) -->
+                    <div class="addon-card" id="addon-card-windows_large_out">
+                        <div class="addon-icon">🌟</div>
+                        <div class="addon-info">
+                            <strong>Large Windows (In & Out)</strong>
+                            <span style="font-size: 0.65rem; opacity: 0.7;">*1st floor sliding doors only</span>
+                            <span>$30</span>
+                        </div>
+                        <div class="addon-counter">
+                            <button type="button" class="addon-btn" onclick="changeAddonQty('windows_large_out', -1)">−</button>
+                            <span class="addon-qty" id="qty-windows_large_out">0</span>
+                            <button type="button" class="addon-btn" onclick="changeAddonQty('windows_large_out', 1)">+</button>
                         </div>
                     </div>
                     
@@ -397,12 +498,12 @@
                     </div>
 
                     <label class="addon-card">
-                        <input type="checkbox" class="addon-checkbox" id="chk-garage" data-price="70" data-label="Garage Sweep & Mop"
+                        <input type="checkbox" class="addon-checkbox" id="chk-garage" data-price="60" data-label="Garage Sweep & Mop"
                             data-id="garage" onchange="updatePrice()">
                         <div class="addon-icon">🚗</div>
                         <div class="addon-info">
                             <strong>Garage Sweep & Mop</strong>
-                            <span id="price-garage">+$70</span>
+                            <span id="price-garage">+$60</span>
                         </div>
                     </label>
                     <label class="addon-card">
@@ -426,12 +527,12 @@
                     </label>
 
                     <label class="addon-card">
-                        <input type="checkbox" class="addon-checkbox" data-price="60" data-label="BBQ Grill Cleaning"
+                        <input type="checkbox" class="addon-checkbox" data-price="80" data-label="BBQ Grill Cleaning"
                             data-id="grill" onchange="updatePrice()">
                         <div class="addon-icon">🥩</div>
                         <div class="addon-info">
                             <strong>BBQ Grill Cleaning</strong>
-                            <span>+$60</span>
+                            <span>+$80</span>
                         </div>
                     </label>
 
@@ -449,13 +550,13 @@
                 </div>
 
                 <div class="step-nav">
-                    <button class="btn-back" onclick="goToStep(3)">← Back</button>
+                    <button class="btn-back" onclick="goToStep(4)">← Back</button>
                     <button class="btn-next btn-book" onclick="showBookingForm()">See My Quote & Book →</button>
                 </div>
             </div>
 
-            <!-- STEP 5: Booking Form (Final) -->
-            <div class="step-panel" id="step-5">
+            <!-- STEP 6: Booking Form (Final) -->
+            <div class="step-panel" id="step-6">
                 <h2 class="step-title">Almost there.</h2>
                 <p class="step-subtitle">Leave your details and we'll confirm your booking within 24 hours.</p>
 
@@ -552,7 +653,7 @@
                 </form>
 
                 <div class="step-nav">
-                    <button class="btn-back" onclick="goToStep(4)">← Adjust My Quote</button>
+                    <button class="btn-back" onclick="goToStep(5)">← Adjust My Quote</button>
                 </div>
             </div>
 
@@ -629,6 +730,17 @@
             <p style="color: var(--bg-primary); opacity: 0.6;">© 2026 ALIGNED SPACES. All rights reserved.</p>
         </div>
     </footer>
+
+    <!-- Mobile Floating Price Bar -->
+    <div id="mobile-floating-bar" class="mobile-floating-price" style="display: none;">
+        <div class="mfp-content">
+            <div class="mfp-price">
+                <span style="font-size: 0.8rem; opacity: 0.8; display: block; line-height: 1;">Total Estimate</span>
+                <strong id="mobile-floating-total">$—</strong>
+            </div>
+            <button class="btn-primary mfp-btn" onclick="floatingBarNext()">Continue →</button>
+        </div>
+    </div>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
