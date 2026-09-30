@@ -892,7 +892,7 @@ function renderPrice(base, maxDiscLabel, discountAmt, addonsTotal, total, isRecu
         </div>`;
         
         if (state.service === 'signature' || state.service === 'transition') {
-            html += `<div style="font-size: 0.75rem; color: var(--soft-gray); font-style: italic; margin-top: 1.5rem; line-height: 1.4; padding: 0.75rem; background: rgba(0,0,0,0.15); border-radius: 6px; border-left: 2px solid var(--accent-primary);">
+            html += `<div style="font-size: 0.8rem; color: #ffffff; font-weight: 500; margin-top: 1.5rem; line-height: 1.5; padding: 0.85rem; background: rgba(0,0,0,0.25); border-radius: 6px; border-left: 3px solid var(--accent-primary);">
                 *This estimate assumes the home condition was selected accurately. If our team arrives and determines the home requires a Heavy Duty deep clean that significantly exceeds normal cleaning time, we will pause and request your approval for any necessary price adjustments before proceeding.
             </div>`;
         }
